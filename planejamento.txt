@@ -1,0 +1,194 @@
+Etapa 1: Núcleo (tipos básicos)
+Objetivo: criar os tipos que todas as outras etapas usam.
+
+Complex (record com re e im): soma, multiplicação, módulo quadrado e distância.
+Modulation (enum BPSK, QPSK, QAM16): contém k (bits por símbolo), a constelação com mapeamento Gray e a eficiência espectral nominal. A constelação deve ser definida uma única vez, pois Modulator e Demodulator vão usá-la.
+DataGenerator, nos três modos:
+textoParaBits(String) (ASCII, 8 bits por caractere, MSB primeiro)
+bitsParaTexto(int[])
+bitsAleatorios(n, semente)
+Testes:
+
+Ida e volta do texto (incluindo acentos, se o ASCII estendido for aceito, ou apenas caracteres ASCII puros).
+bitsAleatorios com a mesma semente gera a mesma sequência.
+Energia média da constelação de cada Modulation é igual a 1 (esse teste pode ser adiado para a Etapa 6, quando a constelação estiver pronta).
+Pronto quando: testes de DataGenerator e Complex passam.
+
+Etapa 2: Codificação de linha (banda base)
+Objetivo: implementar AMI e Manchester sem canal, com ida e volta exata.
+
+LineCode (enum AMI, MANCHESTER).
+LineEncoder: converte bits em amostras reais (double[]).
+AMI: 0 vira 0; 1 vira +1 ou −1, alternando a cada 1.
+Manchester: cada bit ocupa 2 amostras. Use uma convenção fixa (ex.: 1 = (+1, −1); 0 = (−1, +1)) e documente.
+LineDecoder: converte amostras em bits.
+AMI: decisão por magnitude (|x| > 0,5 → bit 1).
+Manchester: compare as duas metades do bit (ex.: r1 − r2). Decidir por uma única amostra piora o desempenho e invalida a comparação com a teoria.
+Testes:
+
+Ida e volta sem ruído para os dois códigos.
+AMI nunca produz dois pulsos consecutivos da mesma polaridade.
+Manchester tem transição no meio de cada bit.
+Pronto quando: a mensagem de texto é recuperada exatamente nos dois códigos, sem ruído.
+
+Etapa 3: Canal AWGN, conversão de SNR e BER
+Objetivo: adicionar ruído com SNR controlado e medir a BER.
+
+Channel (interface): Complex[] apply(Complex[] sinal, double sigma, Random rnd).
+AwgnChannel: soma ruído gaussiano com variância σ² em cada componente. Na banda base, use apenas a parte real.
+SnrConverter: centraliza as conversões.
+Eb/N0 (dB) → Es/N0 (dB): Es/N0 = Eb/N0 + 10·log10(k·R), com R = 1 sem código de canal.
+Es/N0 → σ: com Es = 1, σ² = 1 / (2 · (Es/N0)_linear) por componente.
+Para banda base, calcule σ a partir de Eb com o número de amostras por bit (1 para AMI, 2 para Manchester), para manter a mesma energia por bit.
+Metrics (parcial): ber(enviados, recebidos) retorna a BER e a lista de índices dos bits errados.
+Testes:
+
+Variância medida do ruído, com muitas amostras, é próxima da teórica.
+SnrConverter converte corretamente nos dois sentidos (ex.: 0 dB com k = 2 e R = 1 resulta em Es/N0 = 3,01 dB).
+BER de AMI e Manchester sem ruído é zero.
+Pronto quando: em um teste de NRZ polar com 10⁶ bits, a BER em 4 dB fica perto de Q(√(2·Eb/N0)) (cerca de 1,25·10⁻²). Esse é o primeiro teste contra a teoria.
+
+Etapa 4: Codificação de canal (Hamming 7,4)
+Objetivo: implementar a correção de erros, que a definição pede e que dá sentido à etapa de decodificação.
+
+ChannelEncoder (interface) e ChannelDecoder (interface).
+Hamming74: codifica blocos de 4 bits em 7. Preencha com zeros quando o número de bits não for múltiplo de 4, e registre quantos bits de padding foram usados.
+Decodificação com cálculo de síndrome, que corrige 1 erro por bloco.
+Testes:
+
+Os 16 blocos de dados são recuperados sem ruído.
+Todo erro simples (1 bit em qualquer das 7 posições) é corrigido.
+Erro duplo no mesmo bloco não é corrigido (teste documentando o limite do código).
+Taxa R = 4/7 é usada corretamente no SnrConverter.
+Pronto quando: pipeline banda base com Hamming passa sem ruído e, em Eb/N0 alto, a BER fica abaixo da BER sem código.
+
+Etapa 5: Canal de rajadas (Gilbert-Elliott)
+Objetivo: implementar o segundo cenário de canal, com erros agrupados.
+
+BurstChannel (implementa Channel): cadeia de Markov com dois estados.
+Estado bom: σ normal.
+Estado ruim: σ multiplicado por um fator (ex.: 4 a 6).
+Parâmetros: probabilidade de entrar no estado ruim (p) e de sair dele (r).
+O estado é mantido entre chamadas, e tudo depende do Random recebido.
+Testes:
+
+A fração de amostras no estado ruim fica perto de p / (p + r).
+Com a mesma semente, a sequência de estados se repete.
+Os erros formam grupos: a probabilidade de dois erros consecutivos é maior que a de dois erros independentes com a mesma BER.
+Atenção: calibre p, r e o fator de degradação com um cenário piloto. O canal precisa degradar a BER de forma visível, mas sem inutilizar a transmissão.
+
+Pronto quando: o cenário piloto mostra BER maior que o AWGN no mesmo Eb/N0 média e erros agrupados.
+
+Etapa 6: Modulação e demodulação
+Objetivo: implementar BPSK, QPSK e 16-QAM com Gray.
+
+Modulator: converte bits em Complex[], agrupando k bits por símbolo.
+Demodulator: decisão por distância mínima à constelação e devolve bits, não símbolos.
+Use Modulation da Etapa 1 para as constelações. Normalize:
+BPSK: ±1
+QPSK: (±1 ± j)/√2
+16-QAM: níveis ±1, ±3 dividido por √10
+Testes:
+
+Energia média de símbolo igual a 1 para cada modulação.
+Vizinhos mais próximos na constelação diferem em 1 bit (Gray).
+Ida e volta sem ruído para todos os tamanhos de bloco.
+Bits que não completam um símbolo são tratados de forma explícita (padding documentado).
+Pronto quando: todos os testes de constelação e ida e volta passam para as três modulações.
+
+Etapa 7: Validação teórica das modulações
+Objetivo: provar que a simulação está correta antes de confiar nos resultados.
+
+TheoreticalCurves: função Q (via erfc) e as curvas:
+BPSK e QPSK: Q(√(2·Eb/N0))
+16-QAM com Gray (aproximação): ≈ 0,75 · Q(√(0,8·Eb/N0))
+Teste que compara a BER simulada (10⁶ bits) com a teórica.
+Valores de referência para BPSK:
+
+0 dB: ≈ 7,9·10⁻²
+4 dB: ≈ 1,25·10⁻²
+8 dB: ≈ 1,9·10⁻⁴
+Testes:
+
+Em 0 e 4 dB, a BER simulada fica dentro de ±15% da teórica para BPSK.
+Em 8 dB, use tolerância maior (ou mais bits), porque há poucos erros.
+QPSK tem a mesma curva que BPSK por bit.
+Pronto quando: BPSK e QPSK batem com a teoria dentro da tolerância. Se não baterem, não avance: procure o erro no SnrConverter, no modulador ou no demodulador.
+
+Etapa 8: Pipeline completo e CLI
+Objetivo: juntar tudo em uma cadeia de transmissão e expor pela linha de comando.
+
+Transmission: encadeia DataGenerator → ChannelEncoder → LineEncoder ou Modulator → Channel → Demodulator ou LineDecoder → ChannelDecoder → DataGenerator. Escolha o caminho (linha ou modulado) por parâmetro.
+Main (CLI simples, sem biblioteca extra):
+text
+
+java -jar gb.jar --mensagem "Redes" --modo MODULADO --modulacao QAM16 --ebn0 10 --canal AWGN --semente 42
+Saída: texto recebido, BER, número de bits errados e as posições desses bits.
+Testes:
+
+Teste de consistência: com Eb/N0 alto (ex.: 30 dB), a mensagem recebida é idêntica à enviada para todas as combinações (linha × canal de código × modulação).
+Com ruído moderado, o texto recebido tem erros, e as posições informadas coincidem com as diferenças entre os bits.
+Pronto quando: a CLI executa o fluxo completo com qualquer combinação de parâmetros e o teste de consistência passa.
+
+Etapa 9: Configuração, estatística e execução de experimentos
+Objetivo: tornar os experimentos reproduzíveis e automatizados.
+
+ConfigLoader: lê config/experimento_base.properties (SNRs, bits, seeds, modulações, linhas, canais, códigos).
+Statistics: média, desvio padrão e intervalo de confiança de 95% com a distribuição t. Com 5 repetições (4 graus de liberdade), o valor de t é 2,776.
+ExperimentRunner: executa todas as combinações (cenário × modulação × Eb/N0 × semente) com parâmetros equivalentes entre elas.
+ResultWriter: grava uma linha por execução no CSV bruto, com todos os parâmetros, a semente, o número de bits, os erros e a BER.
+Testes:
+
+Rodar duas vezes com as mesmas sementes gera CSVs idênticos.
+Estatísticas calculadas à mão para um conjunto pequeno batem com o resultado.
+Um experimento pequeno (ex.: 10.000 bits, 2 SNRs) gera o número esperado de linhas.
+Pronto quando: um experimento reduzido gera CSV correto e determinístico.
+
+Etapa 10: Experimentos completos
+Objetivo: executar o plano experimental do trabalho.
+
+8 valores de Eb/N0 (ex.: −2 a 12 dB, passo 2 dB).
+1.000.000 de bits por execução (justifique no relatório: com 100.000 bits, uma BER de 10⁻⁴ gera só cerca de 10 erros).
+5 sementes.
+Modulações, linhas, canais e códigos de canal.
+Rode tudo com um script (scripts/executar_tudo.sh, chamando o java -jar) e salve os logs.
+
+Pronto quando: os CSVs brutos completos estão em resultados/brutos/, e o script roda do zero em uma máquina limpa.
+
+Etapa 11: Gráficos com XChart
+Objetivo: gerar as curvas BER × SNR a partir dos CSVs, sem rodar as simulações de novo.
+
+PlotGenerator: lê os CSVs, calcula média e IC 95% por ponto e gera:
+Curvas BER × Eb/N0 por modulação, com barras de erro e escala logarítmica no eixo y.
+Comparação AWGN × rajadas.
+Curva teórica sobreposta (linha tracejada), se disponível.
+Cuidados:
+
+BER igual a zero não aparece em escala log. Substitua por um piso (ex.: 1/N) e informe isso na legenda.
+Limite o limite inferior das barras de erro a um valor positivo.
+Salve em PNG para o relatório e, se quiser, em SVG ou PDF com VectorGraphicsEncoder.
+Pronto quando: os gráficos são gerados com um único comando, a partir dos CSVs, e revisados visualmente.
+
+Etapa 12: Análise e discussão
+Objetivo: transformar os números em interpretação.
+
+Tabela de compromisso BER × eficiência espectral (docs/tabela_compromisso.md), com a eficiência nominal (BPSK = 1, QPSK = 2, 16-QAM = 4 bits/s/Hz, multiplicada por R quando há código) e a Eb/N0 necessária para uma BER-alvo.
+Discussão: quando cada modulação é mais adequada, impacto do Hamming, por que o AMI perde desempenho e como as rajadas mudam o resultado.
+Explicação de divergências entre simulação e teoria, se houver.
+Opcional: diagramas de constelação antes e depois do canal, com XYChart.
+Pronto quando: cada gráfico tem uma frase de interpretação, e a tabela está preenchida.
+
+Etapa 13: Documentação, reprodutibilidade e vídeo
+Objetivo: atender aos critérios de repositório e entrega.
+
+README: arquitetura, parâmetros, instruções de instalação e execução, divisão de responsabilidades e links para os resultados.
+docs/: arquitetura.md, parametros.md, tabela_compromisso.md.
+Reprodutibilidade: um único comando reproduz CSVs e gráficos.
+Vídeo de até 5 minutos: execução da CLI, um experimento e os principais gráficos. Suba o arquivo no GitHub (ou link no README).
+Pronto quando: outra pessoa consegue clonar o repositório, seguir o README e reproduzir os resultados.
+
+Etapa 14: Apresentação e release
+Slides de 10 minutos, com a divisão de fala entre os dois integrantes.
+Ensaio cronometrado, com perguntas sobre cada classe (revisem o código gerado pela outra IA e garantam que conseguem explicar cada parte).
+Tag v1.0-final no GitHub.
+Link no Moodle antes das 19h de 19/11/2026.
