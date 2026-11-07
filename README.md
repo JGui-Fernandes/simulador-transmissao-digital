@@ -5,14 +5,14 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 1: Núcleo (tipos básicos)
 **Objetivo:** criar os tipos que todas as outras etapas usam.
 
-- [ ] `Complex` (record com `re` e `im`): soma, multiplicação, módulo quadrado e distância
-- [ ] `Modulation` (enum BPSK, QPSK, QAM16): `k`, constelação com Gray e eficiência espectral
-- [ ] `DataGenerator.textoParaBits(String)` (ASCII, 8 bits por caractere, MSB primeiro)
-- [ ] `DataGenerator.bitsParaTexto(int[])`
-- [ ] `DataGenerator.bitsAleatorios(n, semente)`
-- [ ] Teste: ida e volta do texto (ASCII puro)
-- [ ] Teste: mesma semente gera a mesma sequência
-- [ ] Teste: energia média da constelação igual a 1 (pode ser adiado para a Etapa 6)
+- [x] `Complex` (record com `re` e `im`): soma, multiplicação, módulo quadrado e distância
+- [x] `Modulation` (enum BPSK, QPSK, QAM16): `k`, constelação com Gray e eficiência espectral
+- [x] `DataGenerator.textoParaBits(String)` (ASCII, 8 bits por caractere, MSB primeiro)
+- [x] `DataGenerator.bitsParaTexto(int[])`
+- [x] `DataGenerator.bitsAleatorios(n, semente)`
+- [x] Teste: ida e volta do texto (ASCII puro)
+- [x] Teste: mesma semente gera a mesma sequência
+- [x] Teste: energia média da constelação igual a 1 (pode ser adiado para a Etapa 6)
 
 **Pronto quando:** testes de `DataGenerator` e `Complex` passam.
 
@@ -21,14 +21,14 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 2: Codificação de linha (banda base)
 **Objetivo:** implementar AMI e Manchester sem canal, com ida e volta exata.
 
-- [ ] `LineCode` (enum AMI, MANCHESTER)
-- [ ] `LineEncoder`: AMI (0 vira 0; 1 alterna +1 e −1)
-- [ ] `LineEncoder`: Manchester (2 amostras por bit, convenção documentada)
-- [ ] `LineDecoder`: AMI por magnitude (|x| > 0,5)
-- [ ] `LineDecoder`: Manchester pela diferença entre as metades (r1 − r2)
-- [ ] Teste: ida e volta sem ruído para AMI e Manchester
-- [ ] Teste: AMI nunca repete polaridade entre pulsos consecutivos
-- [ ] Teste: Manchester tem transição no meio de cada bit
+- [x] `LineCode` (enum AMI, MANCHESTER)
+- [x] `LineEncoder`: AMI (0 vira 0; 1 alterna +1 e −1)
+- [x] `LineEncoder`: Manchester (2 amostras por bit, convenção documentada)
+- [x] `LineDecoder`: AMI por magnitude (|x| > 0,5)
+- [x] `LineDecoder`: Manchester pela diferença entre as metades (r1 − r2)
+- [x] Teste: ida e volta sem ruído para AMI e Manchester
+- [x] Teste: AMI nunca repete polaridade entre pulsos consecutivos
+- [x] Teste: Manchester tem transição no meio de cada bit
 
 **Pronto quando:** a mensagem de texto é recuperada exatamente nos dois códigos, sem ruído.
 
