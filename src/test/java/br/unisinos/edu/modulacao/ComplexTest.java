@@ -3,6 +3,7 @@ package br.unisinos.edu.modulacao;
 import org.junit.jupiter.api.Test;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class ComplexTest {
 
@@ -40,5 +41,13 @@ class ComplexTest {
         Complex ponto = new Complex(3, 4);
         assertEquals(25.0, origem.distanciaQuadrada(ponto), 1e-12);
         assertEquals(5.0, origem.distancia(ponto), 1e-12);
+    }
+
+    @Test
+    void conversaoDeRealEIdaEVolta() {
+        double[] valores = {1.5, -0.25, 0.0};
+        Complex[] zs = Complex.deReais(valores);
+        assertEquals(0.0, zs[0].im(), 0.0);
+        assertArrayEquals(valores, Complex.partesReais(zs), 0.0);
     }
 }

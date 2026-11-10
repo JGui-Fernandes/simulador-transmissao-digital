@@ -37,16 +37,16 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 3: Canal AWGN, conversão de SNR e BER
 **Objetivo:** adicionar ruído com SNR controlado e medir a BER.
 
-- [ ] `Channel` (interface): `Complex[] apply(Complex[] sinal, double sigma, Random rnd)`
-- [ ] `AwgnChannel`: ruído gaussiano com variância σ² por componente
-- [ ] `SnrConverter`: Eb/N0 → Es/N0 (com k e R)
-- [ ] `SnrConverter`: Es/N0 → σ
-- [ ] `SnrConverter`: σ para banda base, com amostras por bit (1 para AMI, 2 para Manchester)
-- [ ] `Metrics.ber(enviados, recebidos)`: BER e índices dos bits errados
-- [ ] Teste: variância medida do ruído próxima da teórica
-- [ ] Teste: `SnrConverter` nos dois sentidos (0 dB, k = 2, R = 1 → 3,01 dB)
-- [ ] Teste: BER de AMI e Manchester sem ruído é zero
-- [ ] Teste contra a teoria: NRZ polar, 10⁶ bits, 4 dB → BER ≈ 1,25·10⁻²
+- [x] `Channel` (interface): `Complex[] apply(Complex[] sinal, double sigma, Random rnd)`
+- [x] `AwgnChannel`: ruído gaussiano com variância σ² por componente
+- [x] `SnrConverter`: Eb/N0 → Es/N0 (com k e R)
+- [x] `SnrConverter`: Es/N0 → σ
+- [x] `SnrConverter`: σ para banda base, com amostras por bit (1 para AMI, 2 para Manchester)
+- [x] `Metrics.ber(enviados, recebidos)`: BER e índices dos bits errados
+- [x] Teste: variância medida do ruído próxima da teórica
+- [x] Teste: `SnrConverter` nos dois sentidos (0 dB, k = 2, R = 1 → 3,01 dB)
+- [x] Teste: BER de AMI e Manchester sem ruído é zero
+- [x] Teste contra a teoria: NRZ polar, 10⁶ bits, 4 dB → BER ≈ 1,25·10⁻²
 
 **Pronto quando:** o teste contra a teoria do NRZ polar passa.
 
