@@ -2,6 +2,7 @@ package br.unisinos.edu.canal;
 
 import br.unisinos.edu.canal.SnrConverter;
 import br.unisinos.edu.codificacao.linha.LineCode;
+import br.unisinos.edu.codificacao.canal.Hamming74;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,5 +62,16 @@ class SnrConverterTest {
                 () -> SnrConverter.ebn0ParaEsn0Db(0.0, 2, 1.5));
         assertThrows(IllegalArgumentException.class,
                 () -> SnrConverter.sigmaBandaBase(0.0, 0.0, 1.0));
+    }
+
+    @Test
+    void taxaDoHammingAumentaSigmaPorRaizDe7Sobre4() {
+
+        double eb = SnrConverter.energiaPorBitBandaBase(LineCode.MANCHESTER);
+        double semCodigo = SnrConverter.sigmaBandaBase(6.0, eb, 1.0);
+        double comCodigo = SnrConverter.sigmaBandaBase(6.0, eb, new Hamming74().taxa());
+        assertEquals(Math.sqrt(7.0 / 4.0), comCodigo / semCodigo, 1e-12);
+
+        assertEquals(-2.43, SnrConverter.ebn0ParaEsn0Db(0.0, 1, new Hamming74().taxa()), 0.01);
     }
 }

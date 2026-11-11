@@ -55,13 +55,13 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 4: Codificação de canal (Hamming 7,4)
 **Objetivo:** implementar a correção de erros.
 
-- [ ] `ChannelEncoder` (interface) e `ChannelDecoder` (interface)
-- [ ] `Hamming74`: codificação de blocos de 4 bits em 7, com padding registrado
-- [ ] `Hamming74`: decodificação por síndrome (corrige 1 erro por bloco)
-- [ ] Teste: os 16 blocos de dados são recuperados sem ruído
-- [ ] Teste: todo erro simples (7 posições) é corrigido
-- [ ] Teste: erro duplo no mesmo bloco não é corrigido (documentando o limite)
-- [ ] Teste: taxa R = 4/7 usada corretamente no `SnrConverter`
+- [x] `ChannelEncoder` (interface) e `ChannelDecoder` (interface)
+- [x] `Hamming74`: codificação de blocos de 4 bits em 7, com padding registrado
+- [x] `Hamming74`: decodificação por síndrome (corrige 1 erro por bloco)
+- [x] Teste: os 16 blocos de dados são recuperados sem ruído
+- [x] Teste: todo erro simples (7 posições) é corrigido
+- [x] Teste: erro duplo no mesmo bloco não é corrigido (documentando o limite)
+- [x] Teste: taxa R = 4/7 usada corretamente no `SnrConverter`
 
 **Pronto quando:** pipeline banda base com Hamming passa sem ruído e, em Eb/N0 alto, a BER fica abaixo da BER sem código.
 
