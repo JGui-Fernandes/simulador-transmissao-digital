@@ -70,14 +70,14 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 5: Canal de rajadas (Gilbert-Elliott)
 **Objetivo:** implementar o segundo cenário de canal, com erros agrupados.
 
-- [ ] `BurstChannel` (implementa `Channel`): cadeia de Markov com dois estados
-- [ ] Estado bom (σ normal) e estado ruim (σ × fator de degradação)
-- [ ] Parâmetros p (entrar no ruim) e r (sair do ruim) configuráveis
-- [ ] Estado mantido entre chamadas, dependente só do `Random` recebido
-- [ ] Teste: fração de amostras no estado ruim perto de p / (p + r)
-- [ ] Teste: mesma semente gera a mesma sequência de estados
-- [ ] Teste: erros agrupados (dois erros consecutivos mais prováveis que em canal independente)
-- [ ] Calibração com cenário piloto (p, r e fator escolhidos e documentados)
+- [x] `BurstChannel` (implementa `Channel`): cadeia de Markov com dois estados
+- [x] Estado bom (σ normal) e estado ruim (σ × fator de degradação)
+- [x] Parâmetros p (entrar no ruim) e r (sair do ruim) configuráveis
+- [x] Estado mantido entre chamadas, dependente só do `Random` recebido
+- [x] Teste: fração de amostras no estado ruim perto de p / (p + r)
+- [x] Teste: mesma semente gera a mesma sequência de estados
+- [x] Teste: erros agrupados (dois erros consecutivos mais prováveis que em canal independente)
+- [x] Calibração com cenário piloto (p, r e fator escolhidos e documentados)
 
 **Pronto quando:** o cenário piloto mostra BER maior que o AWGN no mesmo Eb/N0 médio e erros agrupados.
 
