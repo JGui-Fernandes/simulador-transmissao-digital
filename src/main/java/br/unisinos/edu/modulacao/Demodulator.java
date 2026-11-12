@@ -22,6 +22,13 @@ public class Demodulator {
         int[] bits = new int[recebidos.length * k];
 
         for (int s = 0; s < recebidos.length; s++) {
+
+            // NaN e infinito nunca vencem a comparação "d < menor": sem esta checagem,
+            // o símbolo seria decodificado como o padrão 0 sem avisar.
+            if (!Double.isFinite(recebidos[s].re()) || !Double.isFinite(recebidos[s].im())) {
+                throw new IllegalArgumentException(
+                        "Símbolo recebido inválido na posição " + s + ": " + recebidos[s]);
+            }
             int melhor = 0;
             double menor = Double.MAX_VALUE;
             for (int p = 0; p < constelacao.length; p++) {
@@ -37,4 +44,5 @@ public class Demodulator {
         }
         return Arrays.copyOf(bits, tamanhoOriginal);
     }
+
 }

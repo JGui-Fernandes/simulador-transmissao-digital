@@ -6,6 +6,9 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashSet;
+import java.util.Arrays;
+
 class ModulationTest {
 
     @ParameterizedTest
@@ -53,5 +56,11 @@ class ModulationTest {
                 }
             }
         }
+    }
+
+    @ParameterizedTest
+    @EnumSource(Modulation.class)
+    void constelacaoTemPontosDistintos(Modulation m) {
+        assertEquals(m.ordem(), new HashSet<>(Arrays.asList(m.constelacao())).size());
     }
 }

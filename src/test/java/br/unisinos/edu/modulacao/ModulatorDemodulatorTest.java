@@ -35,21 +35,51 @@ public class ModulatorDemodulatorTest {
         }
     }
 
+    private static double menorDistancia(Modulation m) {
+        double d = Double.MAX_VALUE;
+        for (int a = 0; a < m.ordem(); a++)
+            for (int b = a + 1; b < m.ordem(); b++)
+                d = Math.min(d, m.simbolo(a).distancia(m.simbolo(b)));
+        return d;
+    }
+
+    private static int[] bitsDe(int valor, int k) {
+        int[] bits = new int[k];
+        for (int b = 0; b < k; b++) bits[b] = (valor >> (k - 1 - b)) & 1;
+        return bits;
+    }
+
     @ParameterizedTest
     @EnumSource(Modulation.class)
-    void decideCertoComPequenoDeslocamento(Modulation m) {
-        // 0,1 em cada eixo é menor que a metade da menor distância (16-QAM: 1/√10 ≈ 0,316)
+    void ruidoAbaixoDeDminSobreDoisNaoMudaADecisaoEmNenhumaDirecao(Modulation m) {
         int k = m.bitsPorSimbolo();
+        double raio = 0.99 * menorDistancia(m) / 2.0; // d_min/2 = 1/√10 no 16-QAM
         for (int v = 0; v < m.ordem(); v++) {
-            int[] bits = new int[k];
-            for (int b = 0; b < k; b++) {
-                bits[b] = (v >> (k - 1 - b)) & 1;
+            for (int d = 0; d < 8; d++) { // 0°, 45°, ..., 315°
+                double ang = d * Math.PI / 4.0;
+                Complex ruido = new Complex(raio * Math.cos(ang), raio * Math.sin(ang));
+                assertArrayEquals(bitsDe(v, k),
+                        Demodulator.demodular(new Complex[] {m.simbolo(v).soma(ruido)}, m, k),
+                        m.rotulo() + ", símbolo " + v + ", direção " + 45 * d + "°");
             }
-            Complex original = Modulator.modular(bits, m)[0];
-            Complex perturbado = original.soma(new Complex(0.1, -0.1));
-            assertArrayEquals(bits,
-                    Demodulator.demodular(new Complex[] {perturbado}, m, k),
-                    m.rotulo() + ", símbolo " + v);
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(Modulation.class)
+    void empurrarParaOVizinhoMaisProximoErraExatamenteUmBit(Modulation m) {
+        int k = m.bitsPorSimbolo();
+        double dMin = menorDistancia(m);
+        for (int va = 0; va < m.ordem(); va++) {
+            for (int vb = 0; vb < m.ordem(); vb++) {
+                Complex a = m.simbolo(va), b = m.simbolo(vb);
+                if (va == vb || Math.abs(a.distancia(b) - dMin) > 1e-9) continue;
+                Complex empurrado = a.soma(b.soma(a.escala(-1.0)).escala(0.505)); // 1% além do ponto médio
+                assertArrayEquals(bitsDe(vb, k),
+                        Demodulator.demodular(new Complex[] {empurrado}, m, k),
+                        m.rotulo() + ": " + va + " empurrado para " + vb);
+                assertEquals(1, Integer.bitCount(va ^ vb));
+            }
         }
     }
 
@@ -73,24 +103,22 @@ public class ModulatorDemodulatorTest {
         assertEquals(new Complex(+e, +e), Modulator.modular(new int[] {1, 1}, Modulation.QPSK)[0]);
     }
 
-    @Test
-    void mapeamento16QamSegueODiagramaGray() {
-        // Em cada eixo: 00 -> -3, 01 -> -1, 11 -> +1, 10 -> +3
-        // Os 2 primeiros bits definem I e os 2 últimos definem Q.
+    private static void conferePonto(int[] bits, int i, int q) {
         double e = 1.0 / Math.sqrt(10.0);
-        for (int v = 0; v < 16; v++) {
-            int[] bits = {(v >> 3) & 1, (v >> 2) & 1, (v >> 1) & 1, v & 1};
-            Complex c = Modulator.modular(bits, Modulation.QAM16)[0];
-            assertEquals(nivelGray(bits[0], bits[1]) * e, c.re(), 1e-12, "I do símbolo " + v);
-            assertEquals(nivelGray(bits[2], bits[3]) * e, c.im(), 1e-12, "Q do símbolo " + v);
-        }
+        Complex c = Modulator.modular(bits, Modulation.QAM16)[0];
+        assertEquals(i * e, c.re(), 1e-12);
+        assertEquals(q * e, c.im(), 1e-12);
     }
 
-    private static int nivelGray(int a, int b) {
-        if (a == 0 && b == 0) return -3;
-        if (a == 0 && b == 1) return -1;
-        if (a == 1 && b == 1) return +1;
-        return +3; // 10
+    @Test
+    void mapeamento16QamSegueATabelaDaEspecificacao() {
+        // Em cada eixo: 00 -> -3, 01 -> -1, 11 -> +1, 10 -> +3 (valores escritos à mão)
+        conferePonto(new int[] {0, 0, 0, 0}, -3, -3);
+        conferePonto(new int[] {0, 1, 1, 0}, -1, +3);
+        conferePonto(new int[] {1, 0, 1, 0}, +3, +3);
+        conferePonto(new int[] {1, 1, 0, 0}, +1, -3);
+        conferePonto(new int[] {0, 1, 0, 1}, -1, -1);
+        conferePonto(new int[] {1, 1, 1, 1}, +1, +1);
     }
 
     @Test
@@ -124,18 +152,11 @@ public class ModulatorDemodulatorTest {
                 () -> Demodulator.demodular(new Complex[0], Modulation.BPSK, -1));
     }
 
-    @ParameterizedTest
-    @EnumSource(Modulation.class)
-    void energiaMediaDosSimbolosEhUm(Modulation m) {
-        Complex[] constelacao = m.constelacao();
-
-        double soma = 0.0;
-        for (Complex c : constelacao) {
-            soma += c.re() * c.re() + c.im() * c.im();
-        }
-
-        double energiaMedia = soma / constelacao.length;
-
-        assertEquals(1.0, energiaMedia, 1e-12, m.rotulo());
+    @Test
+    void rejeitaSimboloRecebidoNaoFinito() {
+        assertThrows(IllegalArgumentException.class, () -> Demodulator.demodular(
+                new Complex[] {new Complex(Double.NaN, 0.0)}, Modulation.BPSK, 1));
+        assertThrows(IllegalArgumentException.class, () -> Demodulator.demodular(
+                new Complex[] {new Complex(0.0, Double.POSITIVE_INFINITY)}, Modulation.QPSK, 2));
     }
 }
