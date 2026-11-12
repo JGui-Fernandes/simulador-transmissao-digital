@@ -63,4 +63,14 @@ class ModulationTest {
     void constelacaoTemPontosDistintos(Modulation m) {
         assertEquals(m.ordem(), new HashSet<>(Arrays.asList(m.constelacao())).size());
     }
+
+    @ParameterizedTest
+    @EnumSource(Modulation.class)
+    void indiceDaConstelacaoEhOPadraoDeBits(Modulation m) {
+        Complex[] c = m.constelacao();
+        for (int v = 0; v < m.ordem(); v++) {
+            assertEquals(m.simbolo(v).re(), c[v].re(), 1e-12, m.rotulo() + " índice " + v + " (re)");
+            assertEquals(m.simbolo(v).im(), c[v].im(), 1e-12, m.rotulo() + " índice " + v + " (im)");
+        }
+    }
 }
