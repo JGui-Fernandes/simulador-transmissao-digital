@@ -47,7 +47,7 @@ public final class BurstChannel implements Channel {
     public Complex[] apply(Complex[] sinal, double sigma, Random rnd) {
         Objects.requireNonNull(sinal, "sinal não pode ser nulo");
         Objects.requireNonNull(rnd, "rnd não pode ser nulo");
-        if (!(sigma >= 0)) {
+        if (!(sigma >= 0) || !Double.isFinite(sigma)) {
             throw new IllegalArgumentException("sigma inválido: " + sigma);
         }
 
@@ -104,6 +104,13 @@ public final class BurstChannel implements Channel {
     public double potenciaRuidoRelativa() {
         double pi = fracaoEsperadaRuim();
         return (1.0 - pi) + pi * fatorDegradacao * fatorDegradacao;
+    }
+
+    public double sigmaBomParaMesmaPotenciaMedia(double sigmaMedio) {
+        if (!(sigmaMedio >= 0) || !Double.isFinite(sigmaMedio)) {
+            throw new IllegalArgumentException("sigmaMedio inválido: " + sigmaMedio);
+        }
+        return sigmaMedio / Math.sqrt(potenciaRuidoRelativa());
     }
 
     public double p() {

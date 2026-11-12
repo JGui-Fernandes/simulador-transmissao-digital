@@ -13,8 +13,12 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Cenário piloto do canal de rajadas: NRZ polar, Eb/N0 nominal de 4 dB,
+ * Cenário piloto do canal de rajadas: NRZ polar, Eb/N0 de 4 dB,
  * p = 0,01, r = 0,1, fator = 5.
+ *
+ * Comparação principal no MESMO Eb/N0 médio: o sigma do estado bom é reduzido
+ * para que a potência média do ruído seja igual à do AWGN. O teste nominal
+ * mostra o efeito de somar ruído extra.
  */
 class ValidacaoRajadasTest {
 
@@ -23,15 +27,15 @@ class ValidacaoRajadasTest {
     private static final double P = 0.01;
     private static final double R = 0.1;
     private static final double FATOR = 5.0;
+    private static final double SIGMA_AWGN = SnrConverter.sigmaBandaBase(EBN0_DB, 1.0, 1.0);
 
     /** Vetor com true nas posições de bit errado. */
-    private static boolean[] erros(Channel canal) {
+    private static boolean[] erros(Channel canal, double sigma) {
         int[] bits = DataGenerator.bitsAleatorios(N, 2026L);
         double[] nrz = new double[N];
         for (int i = 0; i < N; i++) {
             nrz[i] = bits[i] == 1 ? 1.0 : -1.0;
         }
-        double sigma = SnrConverter.sigmaBandaBase(EBN0_DB, 1.0, 1.0);
         Complex[] rx = canal.apply(Complex.deReais(nrz), sigma, new Random(3026L));
 
         boolean[] e = new boolean[N];
@@ -40,6 +44,12 @@ class ValidacaoRajadasTest {
             e[i] = decidido != bits[i];
         }
         return e;
+    }
+
+    /** Erros do canal de rajadas no mesmo Eb/N0 médio do AWGN. */
+    private static boolean[] errosRajadasNormalizado() {
+        BurstChannel canal = BurstChannel.bandaBase(P, R, FATOR);
+        return erros(canal, canal.sigmaBomParaMesmaPotenciaMedia(SIGMA_AWGN));
     }
 
     private static double ber(boolean[] e) {
@@ -58,41 +68,53 @@ class ValidacaoRajadasTest {
     }
 
     @Test
-    void cenarioPilotoDegradaBerSemInutilizarATransmissao() {
-        double berAwgn = ber(erros(AwgnChannel.bandaBase()));
-        double berRajada = ber(erros(BurstChannel.bandaBase(P, R, FATOR)));
+    void noMesmoEbN0MedioRajadasTemBerMaiorQueAwgn() {
+        double berAwgn = ber(erros(AwgnChannel.bandaBase(), SIGMA_AWGN));
+        double berRajada = ber(errosRajadasNormalizado());
 
-        // Controle: o AWGN continua batendo com a teoria (≈ 0,0125).
+        // Controle: o AWGN bate com a teoria, Q(√(2·10^0,4)) ≈ 0,0125.
         assertEquals(0.0125, berAwgn, 0.05 * 0.0125);
 
-        // Degradação visível: esperado ≈ 0,041, cerca de 3,3 vezes o AWGN.
-        assertTrue(berRajada > 2 * berAwgn,
+        // Mesma potência média de ruído, distribuída em rajadas:
+        // esperado ≈ 0,019, cerca de 1,5 vez o AWGN.
+        assertTrue(berRajada > 1.3 * berAwgn,
                 "rajadas: " + berRajada + ", AWGN: " + berAwgn);
-
-        // Sem inutilizar: longe de 0,5 (chute aleatório).
         assertTrue(berRajada < 0.1, "BER com rajadas alta demais: " + berRajada);
     }
 
     @Test
     void errosDoCanalDeRajadasSaoAgrupados() {
-        boolean[] e = erros(BurstChannel.bandaBase(P, R, FATOR));
+        boolean[] e = errosRajadasNormalizado();
         double ber = ber(e);
         double consecutivos = taxaErrosConsecutivos(e);
 
-        // Erros independentes com a mesma BER teriam P(dois seguidos) = BER².
-        // Esperado: ≈ 0,0089 contra BER² ≈ 0,0017, cerca de 5 vezes.
-        assertTrue(consecutivos > 2 * ber * ber,
+        // Erros independentes com a mesma BER: P(dois seguidos) = BER².
+        // Esperado: ≈ 0,0037 contra BER² ≈ 0,00037, cerca de 10 vezes.
+        assertTrue(consecutivos > 3 * ber * ber,
                 "P(consecutivos) = " + consecutivos + ", BER² = " + ber * ber);
     }
 
     @Test
     void errosDoAwgnSaoIndependentes() {
         // Controle: no AWGN, P(dois seguidos) ≈ BER².
-        boolean[] e = erros(AwgnChannel.bandaBase());
+        boolean[] e = erros(AwgnChannel.bandaBase(), SIGMA_AWGN);
         double ber = ber(e);
         double consecutivos = taxaErrosConsecutivos(e);
 
         // ≈ 156 pares em 10⁶; o desvio de uma contagem de Poisson é ≈ 8%.
         assertEquals(ber * ber, consecutivos, 0.3 * ber * ber);
+    }
+
+    @Test
+    void comSigmaNominalADegradacaoEhMaiorPorqueHaMaisRuido() {
+        // Mesmo sigma no estado bom, sem normalizar: a potência média do ruído
+        // fica cerca de 3,18 vezes a do AWGN (≈ +5 dB). Esperado ≈ 0,041.
+        double berAwgn = ber(erros(AwgnChannel.bandaBase(), SIGMA_AWGN));
+        double berNominal = ber(erros(BurstChannel.bandaBase(P, R, FATOR), SIGMA_AWGN));
+        double berNormalizada = ber(errosRajadasNormalizado());
+
+        assertTrue(berNominal > berNormalizada,
+                "nominal: " + berNominal + ", normalizada: " + berNormalizada);
+        assertTrue(berNominal > 2 * berAwgn);
     }
 }
