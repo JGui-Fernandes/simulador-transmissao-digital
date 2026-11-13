@@ -14,33 +14,34 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
 public class HammingPipelineTest {
     private static final LineCode CODIGO = LineCode.MANCHESTER;
 
-    /** bits -> [Hamming] -> linha -> AWGN -> linha -> [Hamming] -> bits */
-    private static int[] transmitir(int[] bits, boolean comHamming, double ebn0Db, long semente) {
+    private static int[] transmitirComSigma(int[] bits, boolean comHamming, double sigma, long semente) {
         Hamming74 h = new Hamming74();
         int[] tx = comHamming ? h.encode(bits) : bits;
-        double taxa = comHamming ? h.taxa() : 1.0;
-
-        double sigma = SnrConverter.sigmaBandaBase(
-                ebn0Db, SnrConverter.energiaPorBitBandaBase(CODIGO), taxa);
         Complex[] rx = AwgnChannel.bandaBase().apply(
                 Complex.deReais(LineEncoder.codificar(tx, CODIGO)), sigma, new Random(semente));
-
         int[] detectados = LineDecoder.decodificar(Complex.partesReais(rx), CODIGO);
         return comHamming ? h.decode(detectados, bits.length) : detectados;
+    }
+
+    private static int[] transmitir(int[] bits, boolean comHamming, double ebn0Db, long semente) {
+        double taxa = comHamming ? new Hamming74().taxa() : 1.0;
+        double sigma = SnrConverter.sigmaBandaBase(
+                ebn0Db, SnrConverter.energiaPorBitBandaBase(CODIGO), taxa);
+        return transmitirComSigma(bits, comHamming, sigma, semente);
     }
 
     @Test
     void pipelineComHammingSemRuidoRecuperaTexto() {
         String texto = "Redes de Computadores - GB 2026!";
         int[] bits = DataGenerator.textoParaBits(texto);
-        Hamming74 h = new Hamming74();
-        double[] linha = LineEncoder.codificar(h.encode(bits), CODIGO);
-        int[] rec = h.decode(LineDecoder.decodificar(linha, CODIGO), bits.length);
+        int[] rec = transmitirComSigma(bits, true, 0.0, 1L);
         assertEquals(texto, DataGenerator.bitsParaTexto(rec));
     }
+
 
     @Test
     void emEbN0AltoBerComHammingEhMenorQueSemCodigo() {
