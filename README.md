@@ -86,12 +86,12 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 6: Modulação e demodulação
 **Objetivo:** implementar BPSK, QPSK e 16-QAM com Gray.
 
-- [ ] `Modulator`: converte bits em `Complex[]`, agrupando k bits por símbolo
-- [ ] `Demodulator`: decisão por distância mínima e devolve bits
-- [ ] Padding documentado para bits que não completam um símbolo
-- [ ] Teste: energia média de símbolo igual a 1 para cada modulação
-- [ ] Teste: vizinhos mais próximos diferem em 1 bit (Gray)
-- [ ] Teste: ida e volta sem ruído para todos os tamanhos de bloco
+- [x] `Modulator`: converte bits em `Complex[]`, agrupando k bits por símbolo
+- [x] `Demodulator`: decisão por distância mínima e devolve bits
+- [x] Padding documentado para bits que não completam um símbolo
+- [x] Teste: energia média de símbolo igual a 1 para cada modulação
+- [x] Teste: vizinhos mais próximos diferem em 1 bit (Gray)
+- [x] Teste: ida e volta sem ruído para todos os tamanhos de bloco
 
 **Pronto quando:** todos os testes de constelação e ida e volta passam para as três modulações.
 
