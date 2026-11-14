@@ -15,17 +15,12 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Validação do simulador contra a teoria (Etapa 7).
- * Cadeia real: DataGenerator -> Modulator -> AwgnChannel -> Demodulator -> Metrics.
- * Não reimplementa modulação nem demodulação aqui.
- */
 class ValidacaoTeoricaTest {
 
     private static final long SEMENTE_DADOS = 2026L;
     private static final long SEMENTE_CANAL = 3026L;
     private static final int BITS_POR_BLOCO = 1_000_000;
-    private static final double TOLERANCIA = 0.15; // ±15%, valor do plano
+    private static final double TOLERANCIA = 0.15;
 
     /**
      * BER medida somando blocos independentes. Cada bloco usa sementes
