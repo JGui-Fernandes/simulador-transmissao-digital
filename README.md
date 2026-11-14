@@ -100,12 +100,12 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 7: Validação teórica das modulações
 **Objetivo:** provar que a simulação está correta antes de confiar nos resultados.
 
-- [ ] `TheoreticalCurves`: função Q (via `erfc`)
-- [ ] `TheoreticalCurves`: BPSK/QPSK, Q(√(2·Eb/N0))
-- [ ] `TheoreticalCurves`: 16-QAM com Gray, ≈ 0,75 · Q(√(0,8·Eb/N0))
-- [ ] Teste: BPSK em 0 dB e 4 dB dentro de ±15% da teoria
-- [ ] Teste: BPSK em 8 dB com tolerância maior ou mais bits
-- [ ] Teste: QPSK com a mesma curva do BPSK por bit
+- [x] `TheoreticalCurves`: função Q (via `erfc`)
+- [x] `TheoreticalCurves`: BPSK/QPSK, Q(√(2·Eb/N0))
+- [x] `TheoreticalCurves`: 16-QAM com Gray, ≈ 0,75 · Q(√(0,8·Eb/N0))
+- [x] Teste: BPSK em 0 dB e 4 dB dentro de ±15% da teoria
+- [x] Teste: BPSK em 8 dB com tolerância maior ou mais bits
+- [x] Teste: QPSK com a mesma curva do BPSK por bit
 
 **Pronto quando:** BPSK e QPSK batem com a teoria dentro da tolerância. Se não baterem, não avance.
 
