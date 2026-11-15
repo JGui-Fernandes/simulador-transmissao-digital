@@ -102,12 +102,20 @@ class CliTest {
     // ---------- Ajuda e erros de uso ----------
 
     @Test
-    void ajudaMostraAsOpcoesESaiComSucesso() {
-        Execucao e = executar("--ajuda");
+    void helpMostraAsOpcoesESaiComSucesso() {
+        Execucao e = executar("--help");
         assertEquals(0, e.codigo());
         assertTrue(e.saida().contains("--mensagem"), e.saida());
         assertTrue(e.saida().contains("--ebn0"), e.saida());
         assertTrue(e.saida().contains("--canal"), e.saida());
+        assertEquals("", e.erro());
+    }
+
+    @Test
+    void ajudaAntigoNaoEhMaisAceito() {
+        Execucao e = executar("--ajuda");
+        assertEquals(2, e.codigo());
+        assertTrue(e.erro().contains("opção desconhecida: --ajuda"), e.erro());
     }
 
     @Test
@@ -146,7 +154,7 @@ class CliTest {
         Execucao e = executar("--mensagem", "a\u00e7\u00e3o");
         assertEquals(2, e.codigo());
         assertTrue(e.erro().contains("Caractere fora do ASCII"), e.erro());
-        assertTrue(e.erro().contains("--ajuda"), e.erro());
+        assertTrue(e.erro().contains("--help"), e.erro());
     }
 
     // ---------- Texto seguro ----------

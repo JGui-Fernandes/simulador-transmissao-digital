@@ -25,7 +25,7 @@ public final class Cli {
 
     private static final Set<String> OPCOES = Set.of(
             "mensagem", "modo", "linha", "modulacao", "codigo", "canal",
-            "ebn0", "semente", "p", "r", "fator", "ajuda");
+            "ebn0", "semente", "p", "r", "fator", "help");
 
     private static final String USO = """
             Uso: java -jar gb.jar [opções]
@@ -57,7 +57,7 @@ public final class Cli {
         Objects.requireNonNull(err, "err não pode ser nulo");
         try {
             Map<String, String> opcoes = lerOpcoes(args);
-            if (opcoes.containsKey("ajuda")) {
+            if (opcoes.containsKey("help")) {
                 out.print(uso());
                 return SUCESSO;
             }
@@ -74,7 +74,7 @@ public final class Cli {
             return SUCESSO;
         } catch (IllegalArgumentException e) {
             err.println("Erro: " + e.getMessage());
-            err.println("Use --ajuda para ver as opções.");
+            err.println("Use --help para ver as opções.");
             return ERRO_DE_USO;
         }
     }
@@ -114,7 +114,7 @@ public final class Cli {
             if (opcoes.containsKey(nome)) {
                 throw new IllegalArgumentException("opção repetida: " + arg);
             }
-            if (nome.equals("ajuda")) {
+            if (nome.equals("help")) {
                 opcoes.put(nome, "");
                 continue;
             }
