@@ -17,15 +17,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Interface de linha de comando. Não chama System.exit: devolve o código de saída,
- * para que os testes possam verificá-lo.
- *
- * Códigos de saída:
- * 0 sucesso;
- * 2 erro de uso (opção ou valor inválido, argumento inesperado, texto fora do ASCII);
- * 1 erro interno (falha durante a transmissão, que não deveria ocorrer com entrada válida).
- */
 public final class Cli {
 
     public static final int SUCESSO = 0;
@@ -158,7 +149,6 @@ public final class Cli {
         return opcoes;
     }
 
-    /** Valida todas as opções, inclusive as que não se aplicam ao modo ou canal escolhido. */
     private static ConfigTransmission montarConfig(Map<String, String> opcoes) {
         Mode modo = lerEnum(opcoes, "modo", Mode.MODULADO);
         ChannelType canal = lerEnum(opcoes, "canal", ChannelType.AWGN);
@@ -178,7 +168,6 @@ public final class Cli {
         return base.comRajadas(p, r, fator);
     }
 
-    /** Avisa, em err, as opções válidas que não têm efeito na configuração escolhida. */
     private static void avisarOpcoesIgnoradas(Map<String, String> opcoes, ConfigTransmission config,
                                               PrintStream err) {
         if (config.modo() == Mode.MODULADO) {
