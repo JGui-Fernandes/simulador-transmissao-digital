@@ -2,7 +2,7 @@ package br.unisinos.edu.modulacao;
 
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class ComplexTest {
