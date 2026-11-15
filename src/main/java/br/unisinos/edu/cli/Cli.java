@@ -3,22 +3,33 @@ package br.unisinos.edu.cli;
 import br.unisinos.edu.codificacao.linha.LineCode;
 import br.unisinos.edu.mensagem.DataGenerator;
 import br.unisinos.edu.modulacao.Modulation;
+import br.unisinos.edu.transmissao.ChannelType;
 import br.unisinos.edu.transmissao.ConfigTransmission;
 import br.unisinos.edu.transmissao.Mode;
-import br.unisinos.edu.transmissao.TransmissionResult;
-import br.unisinos.edu.transmissao.ChannelType;
 import br.unisinos.edu.transmissao.Transmission;
+import br.unisinos.edu.transmissao.TransmissionResult;
 
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Interface de linha de comando. Não chama System.exit: devolve o código de saída,
+ * para que os testes possam verificá-lo.
+ *
+ * Códigos de saída:
+ * 0 sucesso;
+ * 2 erro de uso (opção ou valor inválido, argumento inesperado, texto fora do ASCII);
+ * 1 erro interno (falha durante a transmissão, que não deveria ocorrer com entrada válida).
+ */
 public final class Cli {
 
     public static final int SUCESSO = 0;
+    public static final int ERRO_INTERNO = 1;
     public static final int ERRO_DE_USO = 2;
 
     private static final String MENSAGEM_PADRAO = "Redes de Computadores - GB 2026!";
@@ -27,21 +38,28 @@ public final class Cli {
             "mensagem", "modo", "linha", "modulacao", "codigo", "canal",
             "ebn0", "semente", "p", "r", "fator", "help");
 
+    private static final String ROTULO_POSICOES =
+            "Posições dos bits errados (índice base 0, nos bits da mensagem após o decode do Hamming)";
+
     private static final String USO = """
             Uso: java -jar gb.jar [opções]
 
-              --mensagem  texto ASCII a transmitir            (padrão: "%s")
-              --modo      LINHA | MODULADO                    (padrão: MODULADO)
-              --linha     AMI | MANCHESTER                    (padrão: MANCHESTER; só no modo LINHA)
-              --modulacao BPSK | QPSK | QAM16                 (padrão: QPSK; só no modo MODULADO)
-              --codigo    NENHUM | HAMMING74                  (padrão: NENHUM)
-              --canal     AWGN | RAJADAS                      (padrão: AWGN)
-              --ebn0      Eb/N0 em dB                         (padrão: 10)
-              --semente   semente do ruído                    (padrão: 42)
-              --p         rajadas: probabilidade de entrar no estado ruim  (padrão: %s)
-              --r         rajadas: probabilidade de sair do estado ruim    (padrão: %s)
-              --fator     rajadas: fator de degradação do sigma            (padrão: %s)
+              --mensagem  texto ASCII a transmitir                 (padrão: "%s")
+              --modo      LINHA | MODULADO                         (padrão: MODULADO)
+              --linha     AMI | MANCHESTER                         (padrão: MANCHESTER; só no modo LINHA)
+              --modulacao BPSK | QPSK | QAM16                      (padrão: QPSK; só no modo MODULADO)
+              --codigo    NENHUM | HAMMING74                       (padrão: NENHUM)
+              --canal     AWGN | RAJADAS                           (padrão: AWGN)
+              --ebn0      Eb/N0 em dB                              (padrão: 10)
+              --semente   semente do ruído                         (padrão: 42)
+              --p         rajadas: P(entrar no estado ruim)        (padrão: %s; só com --canal RAJADAS)
+              --r         rajadas: P(sair do estado ruim)          (padrão: %s; só com --canal RAJADAS)
+              --fator     rajadas: fator de degradação do sigma    (padrão: %s; só com --canal RAJADAS)
               --help      mostra esta mensagem
+
+            Opções que não se aplicam ao modo ou canal escolhido são ignoradas, com aviso.
+            Todos os valores são validados, mesmo os ignorados.
+            Um valor não pode começar com "--"; valores negativos como -2 são aceitos.
 
             Exemplo:
               java -jar gb.jar --mensagem "Redes" --modo MODULADO --modulacao QAM16 --ebn0 10 --canal AWGN --semente 42
@@ -50,32 +68,45 @@ public final class Cli {
     private Cli() {
     }
 
-    /** @return 0 em caso de sucesso, 2 para erro de uso (opção ou valor inválido). */
     public static int executar(String[] args, PrintStream out, PrintStream err) {
         Objects.requireNonNull(args, "args não pode ser nulo");
         Objects.requireNonNull(out, "out não pode ser nulo");
         Objects.requireNonNull(err, "err não pode ser nulo");
+
+        // Fase 1: validar tudo o que veio da linha de comando. Falha aqui é erro de uso.
+        Map<String, String> opcoes;
+        String mensagem;
+        ConfigTransmission config;
+        int[] bits;
         try {
-            Map<String, String> opcoes = lerOpcoes(args);
+            opcoes = lerOpcoes(args);
             if (opcoes.containsKey("help")) {
                 out.print(uso());
                 return SUCESSO;
             }
-
-            String mensagem = opcoes.getOrDefault("mensagem", MENSAGEM_PADRAO);
+            mensagem = opcoes.getOrDefault("mensagem", MENSAGEM_PADRAO);
             if (mensagem.isEmpty()) {
                 throw new IllegalArgumentException("a mensagem não pode ser vazia");
             }
-            ConfigTransmission config = montarConfig(opcoes);
-
-            int[] bits = DataGenerator.textoParaBits(mensagem);
-            TransmissionResult r = Transmission.executar(bits, config);
-            imprimir(out, mensagem, r);
-            return SUCESSO;
+            config = montarConfig(opcoes);
+            bits = DataGenerator.textoParaBits(mensagem);
         } catch (IllegalArgumentException e) {
             err.println("Erro: " + e.getMessage());
             err.println("Use --help para ver as opções.");
             return ERRO_DE_USO;
+        }
+
+        avisarOpcoesIgnoradas(opcoes, config, err);
+
+        // Fase 2: executar. Qualquer exceção aqui é defeito interno, não erro do usuário.
+        try {
+            TransmissionResult r = Transmission.executar(bits, config);
+            imprimir(out, mensagem, r);
+            return SUCESSO;
+        } catch (RuntimeException e) {
+            err.println("Erro interno: " + e);
+            err.println("A entrada passou na validação; isto é um defeito do simulador.");
+            return ERRO_INTERNO;
         }
     }
 
@@ -84,7 +115,7 @@ public final class Cli {
                 ConfigTransmission.R_PADRAO, ConfigTransmission.FATOR_PADRAO);
     }
 
-    /** Troca caracteres não imprimíveis por \xNN, porque bits errados geram qualquer byte. */
+    /** Troca caracteres não imprimíveis por \xNN, porque bits errados podem gerar qualquer byte. */
     public static String textoSeguro(String texto) {
         StringBuilder sb = new StringBuilder(texto.length());
         for (int i = 0; i < texto.length(); i++) {
@@ -92,7 +123,7 @@ public final class Cli {
             if (c >= 32 && c <= 126) {
                 sb.append(c);
             } else {
-                sb.append(String.format("\\x%02X", (int) c));
+                sb.append(String.format(Locale.ROOT, "\\x%02X", (int) c));
             }
         }
         return sb.toString();
@@ -118,7 +149,8 @@ public final class Cli {
                 opcoes.put(nome, "");
                 continue;
             }
-            if (i + 1 >= args.length) {
+            boolean semValor = i + 1 >= args.length || args[i + 1].startsWith("--");
+            if (semValor) {
                 throw new IllegalArgumentException("falta o valor de " + arg);
             }
             opcoes.put(nome, args[++i]);
@@ -126,6 +158,7 @@ public final class Cli {
         return opcoes;
     }
 
+    /** Valida todas as opções, inclusive as que não se aplicam ao modo ou canal escolhido. */
     private static ConfigTransmission montarConfig(Map<String, String> opcoes) {
         Mode modo = lerEnum(opcoes, "modo", Mode.MODULADO);
         ChannelType canal = lerEnum(opcoes, "canal", ChannelType.AWGN);
@@ -133,18 +166,38 @@ public final class Cli {
         double ebn0 = lerDouble(opcoes, "ebn0", 10.0);
         long semente = lerLong(opcoes, "semente", 42L);
 
-        ConfigTransmission base;
-        if (modo == Mode.LINHA) {
-            base = ConfigTransmission.paraLinha(
-                    lerEnum(opcoes, "linha", LineCode.MANCHESTER), hamming, canal, ebn0, semente);
+        LineCode linha = lerEnum(opcoes, "linha", LineCode.MANCHESTER);
+        Modulation modulacao = lerModulacao(opcoes);
+        double p = lerDouble(opcoes, "p", ConfigTransmission.P_PADRAO);
+        double r = lerDouble(opcoes, "r", ConfigTransmission.R_PADRAO);
+        double fator = lerDouble(opcoes, "fator", ConfigTransmission.FATOR_PADRAO);
+
+        ConfigTransmission base = modo == Mode.LINHA
+                ? ConfigTransmission.paraLinha(linha, hamming, canal, ebn0, semente)
+                : ConfigTransmission.paraModulacao(modulacao, hamming, canal, ebn0, semente);
+        return base.comRajadas(p, r, fator);
+    }
+
+    /** Avisa, em err, as opções válidas que não têm efeito na configuração escolhida. */
+    private static void avisarOpcoesIgnoradas(Map<String, String> opcoes, ConfigTransmission config,
+                                              PrintStream err) {
+        if (config.modo() == Mode.MODULADO) {
+            avisarSeInformada(opcoes, "linha", "só se aplica ao modo LINHA", err);
         } else {
-            base = ConfigTransmission.paraModulacao(
-                    lerModulacao(opcoes), hamming, canal, ebn0, semente);
+            avisarSeInformada(opcoes, "modulacao", "só se aplica ao modo MODULADO", err);
         }
-        return base.comRajadas(
-                lerDouble(opcoes, "p", ConfigTransmission.P_PADRAO),
-                lerDouble(opcoes, "r", ConfigTransmission.R_PADRAO),
-                lerDouble(opcoes, "fator", ConfigTransmission.FATOR_PADRAO));
+        if (config.canal() != ChannelType.RAJADAS) {
+            for (String nome : List.of("p", "r", "fator")) {
+                avisarSeInformada(opcoes, nome, "só se aplica ao canal RAJADAS", err);
+            }
+        }
+    }
+
+    private static void avisarSeInformada(Map<String, String> opcoes, String nome, String motivo,
+                                          PrintStream err) {
+        if (opcoes.containsKey(nome)) {
+            err.println("Aviso: a opção --" + nome + " foi ignorada, pois " + motivo + ".");
+        }
     }
 
     private static String normalizar(String valor) {
@@ -247,7 +300,7 @@ public final class Cli {
         out.println("Bits transmitidos no canal: " + r.bitsTransmitidos());
         out.println("Bits errados: " + r.ber().bitsErrados());
         out.println(String.format(Locale.ROOT, "BER: %.6e", r.ber().taxa()));
-        out.println("Posições dos bits errados: " + r.ber().posicoesErradas());
+        out.println(ROTULO_POSICOES + ": " + r.ber().posicoesErradas());
         out.println("Mensagem recuperada: " + (r.mensagemRecuperada() ? "sim" : "não"));
         out.println(String.format(Locale.ROOT, "Eficiência espectral nominal: %.2f bits/s/Hz",
                 r.eficienciaEspectral()));
