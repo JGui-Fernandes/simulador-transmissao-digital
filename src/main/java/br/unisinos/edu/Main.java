@@ -1,13 +1,13 @@
 package br.unisinos.edu;
 
-/**
- * Hello world!
- *
- */
-public class Main
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+import br.unisinos.edu.cli.Cli;
+
+public class Main {
+
+    public static void main(String[] args) {
+        int codigo = Cli.executar(args, System.out, System.err);
+        if (codigo != 0) {
+            System.exit(codigo);
+        }
     }
 }

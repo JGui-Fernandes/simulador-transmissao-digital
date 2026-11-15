@@ -114,11 +114,11 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 8: Pipeline completo e CLI
 **Objetivo:** juntar tudo em uma cadeia de transmissão e expor pela linha de comando.
 
-- [ ] `Transmission`: encadeia todas as etapas, escolhendo linha ou modulado por parâmetro
-- [ ] `Main` (CLI sem biblioteca extra): `--mensagem`, `--modo`, `--modulacao`, `--ebn0`, `--canal`, `--semente`
-- [ ] Saída: texto recebido, BER, número de bits errados e posições
-- [ ] Teste: consistência com Eb/N0 de 30 dB, para todas as combinações
-- [ ] Teste: com ruído moderado, as posições informadas coincidem com as diferenças entre os bits
+- [x] `Transmission`: encadeia todas as etapas, escolhendo linha ou modulado por parâmetro
+- [x] `Main` (CLI sem biblioteca extra): `--mensagem`, `--modo`, `--modulacao`, `--ebn0`, `--canal`, `--semente`
+- [x] Saída: texto recebido, BER, número de bits errados e posições
+- [x] Teste: consistência com Eb/N0 de 30 dB, para todas as combinações
+- [x] Teste: com ruído moderado, as posições informadas coincidem com as diferenças entre os bits
 
 **Pronto quando:** a CLI executa o fluxo completo com qualquer combinação e o teste de consistência passa.
 
