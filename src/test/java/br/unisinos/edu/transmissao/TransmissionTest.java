@@ -186,14 +186,18 @@ class TransmissionTest {
                 "o sigma reportado deve ser o nominal, igual ao do AWGN: " + rajadas + " x " + awgn);
     }
 
+    // Fator 5 aqui é deliberado: é o cenário de validação do modelo, com agrupamento
+// bem visível. O experimento final usa fator 2 (ver docs/parametros.md).
+    private static final double FATOR_VALIDACAO_MODELO = 5.0;
+
     @Test
     void noMesmoEbN0MedioRajadasTemBerMaiorQueAwgnEErrosAgrupados() {
-        // mesmas sementes do cenário piloto: dados 2026, canal 2026 + 1000 = 3026
         int[] bits = DataGenerator.bitsAleatorios(1_000_000, 2026L);
         TransmissionResult awgn = Transmission.executar(bits,
                 ConfigTransmission.paraLinha(LineCode.MANCHESTER, false, ChannelType.AWGN, 4.0, 2026L));
         TransmissionResult rajadas = Transmission.executar(bits,
-                ConfigTransmission.paraLinha(LineCode.MANCHESTER, false, ChannelType.RAJADAS, 4.0, 2026L));
+                ConfigTransmission.paraLinha(LineCode.MANCHESTER, false, ChannelType.RAJADAS, 4.0, 2026L)
+                        .comRajadas(0.01, 0.1, FATOR_VALIDACAO_MODELO));
 
         double berAwgn = awgn.ber().taxa();
         double berRajadas = rajadas.ber().taxa();

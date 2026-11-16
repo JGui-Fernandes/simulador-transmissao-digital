@@ -1,0 +1,113 @@
+﻿**********************
+Início da transcrição do Windows PowerShell
+Hora de início: 20261115221316
+Nome de Usuário: DESKTOP-MT2E95K\jguib
+Executar como Usuário: DESKTOP-MT2E95K\jguib
+Nome da Configuração: 
+Computador: DESKTOP-MT2E95K (Microsoft Windows NT 10.0.26200.0)
+Aplicativo Host: powershell.exe -NoExit -ExecutionPolicy Bypass -File C:\Program Files\JetBrains\IntelliJ IDEA 2026.1.2\plugins\terminal\shell-integrations\powershell\powershell-integration.ps1
+ID do Processo: 12104
+PSVersion: 5.1.26100.9818
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9818
+BuildVersion: 10.0.26100.9818
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcrição iniciada, o arquivo de saída é docs\piloto_fator2.txt
+]1341;command_finished;exit_code=0;current_directory=433A5C55736572735C6A677569625C4465736B746F705C556E6973696E6F73202D2043435C52656465732049495C54726162616C686F2D4742]1341;prompt_startedPS C:\Users\jguib\Desktop\Unisinos - CC\Redes II\Trabalho-GB> ]1341;prompt_finished
+PS>.\scripts\verificar_piloto.ps1 resultados\piloto\piloto_f2.csv
+[OK]     cabecalho igual ao esperado
+[OK]     320 linhas de dados (encontradas 320)
+[OK]     as 320 combinacoes aparecem, sem repeticao
+[OK]     BER = bits_errados / bits_mensagem em todas as linhas
+[OK]     bits_mensagem = 100000 em todas as linhas
+[OK]     p, r e fator vazios no AWGN e preenchidos nas RAJADAS
+[OK]     sigma das RAJADAS igual ao do AWGN no mesmo Eb/N0
+[OK]     BPSK AWGN sem codigo, Eb/N0 0.0 dB: BER 7,84E-002, teorica 7,87E-002
+[OK]     BPSK AWGN sem codigo, Eb/N0 2.0 dB: BER 3,72E-002, teorica 3,74E-002
+[OK]     BPSK AWGN sem codigo, Eb/N0 4.0 dB: BER 1,28E-002, teorica 1,25E-002
+[OK]     BPSK AWGN sem codigo, Eb/N0 6.0 dB: BER 2,42E-003, teorica 2,39E-003
+[OK]     Hamming nao e significativamente pior em 10 e 12 dB (BPSK, QPSK, QAM16, Manchester)
+
+Erros absolutos (AWGN): sem codigo x Hamming74.
+Esperado: AMI pior com Hamming ate ~11 dB; BPSK, QPSK e Manchester cruzam em ~6 dB; 16-QAM perto de 9 dB.
+
+esquema    ebn0_db   sem   com
+-------    -------   ---   ---
+BPSK       -2.0    26241 38592
+BPSK       0.0     15682 23808
+BPSK       2.0      7444 10747
+BPSK       4.0      2567  3171
+BPSK       6.0       483   500
+BPSK       8.0        44    23
+BPSK       10.0        3     0
+BPSK       12.0        0     0
+QPSK       -2.0    25983 38359
+QPSK       0.0     15543 23760
+QPSK       2.0      7326 10919
+QPSK       4.0      2484  3174
+QPSK       6.0       466   512
+QPSK       8.0        40    31
+QPSK       10.0        0     1
+QPSK       12.0        0     0
+QAM16      -2.0    37385 52229
+QAM16      0.0     28083 38941
+QAM16      2.0     19504 25325
+QAM16      4.0     11676 14109
+QAM16      6.0      5510  5767
+QAM16      8.0      1822  1546
+QAM16      10.0      328   228
+QAM16      12.0       32    15
+AMI        -2.0    63130 83365
+AMI        0.0     47324 71157
+AMI        2.0     31066 53337
+AMI        4.0     16742 31783
+AMI        6.0      6871 13058
+AMI        8.0      1830  2926
+AMI        10.0      251   286
+AMI        12.0       16     2
+MANCHESTER -2.0    25958 37961
+MANCHESTER 0.0     15548 23396
+MANCHESTER 2.0      7423 10691
+MANCHESTER 4.0      2439  3099
+MANCHESTER 6.0       465   451
+MANCHESTER 8.0        37    23
+MANCHESTER 10.0        1     0
+MANCHESTER 12.0        0     0
+
+
+
+BER media (sem codigo), para comparar os fatores:
+
+esquema ebn0_db AWGN      RAJADAS   razao
+------- ------- ----      -------   -----
+BPSK    -2.0    1,31E-001 1,46E-001 1,1
+AMI     -2.0    3,16E-001 3,30E-001 1,0
+BPSK    0.0     7,84E-002 9,43E-002 1,2
+AMI     0.0     2,37E-001 2,56E-001 1,1
+BPSK    2.0     3,72E-002 5,20E-002 1,4
+AMI     2.0     1,55E-001 1,79E-001 1,2
+BPSK    4.0     1,28E-002 2,38E-002 1,9
+AMI     4.0     8,37E-002 1,09E-001 1,3
+BPSK    6.0     2,42E-003 9,65E-003 4,0
+AMI     6.0     3,44E-002 5,46E-002 1,6
+BPSK    8.0     2,20E-004 3,94E-003 17,9
+AMI     8.0     9,15E-003 2,32E-002 2,5
+BPSK    10.0    1,50E-005 1,26E-003 83,7
+AMI     10.0    1,26E-003 8,99E-003 7,2
+BPSK    12.0    0,00E+000 2,60E-004 -
+AMI     12.0    8,00E-005 3,21E-003 40,1
+
+
+[OK]     rajadas nao melhores que o AWGN (BER do AWGN > 1e-3)
+
+Verificacoes tecnicas passaram.
+]1341;command_finished;exit_code=0;current_directory=433A5C55736572735C6A677569625C4465736B746F705C556E6973696E6F73202D2043435C52656465732049495C54726162616C686F2D4742]1341;prompt_startedPS C:\Users\jguib\Desktop\Unisinos - CC\Redes II\Trabalho-GB> ]1341;prompt_finished
+PS>Stop-Transcript
+**********************
+Fim da transcrição do Windows PowerShell
+Hora de término: 20261115221318
+**********************

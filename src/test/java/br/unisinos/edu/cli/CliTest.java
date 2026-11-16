@@ -71,7 +71,7 @@ class CliTest {
         assertEquals(0, e.codigo(), e.erro());
         assertTrue(e.saida().contains("Modo: LINHA (AMI)"), e.saida());
         assertTrue(e.saida().contains("Código de canal: Hamming(7,4), R = 0.5714"), e.saida());
-        assertTrue(e.saida().contains("Canal: rajadas (p=0.01, r=0.1, fator=5.0)"), e.saida());
+        assertTrue(e.saida().contains("Canal: rajadas (p=0.01, r=0.1, fator=2.0)"), e.saida());
         assertTrue(e.saida().contains("Bits transmitidos no canal: 70"), e.saida());   // 40 bits -> 10 blocos × 7
         assertTrue(e.saida().contains("Mensagem recuperada: sim"), e.saida());
         assertTrue(e.saida().contains("Eficiência espectral nominal: 0.57 bits/s/Hz"), e.saida());

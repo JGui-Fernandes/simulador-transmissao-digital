@@ -22,7 +22,7 @@ public record ConfigTransmission(
 ) {
     public static final double P_PADRAO = 0.01;
     public static final double R_PADRAO = 0.1;
-    public static final double FATOR_PADRAO = 5.0;
+    public static final double FATOR_PADRAO = 2.0;
 
     public ConfigTransmission {
         Objects.requireNonNull(modo, "modo não pode ser nulo");
