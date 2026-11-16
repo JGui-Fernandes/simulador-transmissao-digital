@@ -1,4 +1,6 @@
 target/
+resultados/teste/
+resultados/piloto/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -38,3 +40,10 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# Resultados temporários (não são evidência final)
+*.parcial
+
+# Windows
+Thumbs.db
+desktop.ini
