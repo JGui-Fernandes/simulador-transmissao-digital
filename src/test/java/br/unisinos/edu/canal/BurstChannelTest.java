@@ -74,27 +74,6 @@ class BurstChannelTest {
         assertEquals(varRuim, somaRuim / nRuim, 0.03 * varRuim);
     }
 
-    // ---------- Mesmo Eb/N0 médio ----------
-
-    @Test
-    void sigmaNormalizadoIgualaAPotenciaMediaDoRuido() {
-        double sigmaMedio = 0.4;
-        BurstChannel canal = BurstChannel.bandaBase(P, R, FATOR);
-        double sigmaBom = canal.sigmaBomParaMesmaPotenciaMedia(sigmaMedio);
-        Complex[] saida = canal.apply(zeros(N), sigmaBom, new Random(11L));
-
-        double soma = 0;
-        for (Complex z : saida) soma += z.re() * z.re();
-        assertEquals(sigmaMedio * sigmaMedio, soma / N, 0.05 * sigmaMedio * sigmaMedio);
-    }
-
-    @Test
-    void comFatorUnitarioNormalizacaoNaoAlteraOSigma() {
-        // Sem degradação, a potência média é a do estado bom: o sigma não muda.
-        BurstChannel canal = BurstChannel.bandaBase(P, R, 1.0);
-        assertEquals(0.4, canal.sigmaBomParaMesmaPotenciaMedia(0.4), 1e-12);
-    }
-
     // ---------- Reprodutibilidade e estado ----------
 
     @Test
@@ -199,11 +178,4 @@ class BurstChannelTest {
         assertThrows(NullPointerException.class, () -> canal.apply(zeros(1), 1.0, null));
     }
 
-    @Test
-    void rejeitaSigmaMedioInvalido() {
-        BurstChannel canal = BurstChannel.bandaBase(P, R, FATOR);
-        assertThrows(IllegalArgumentException.class, () -> canal.sigmaBomParaMesmaPotenciaMedia(-0.1));
-        assertThrows(IllegalArgumentException.class,
-                () -> canal.sigmaBomParaMesmaPotenciaMedia(Double.NaN));
-    }
 }

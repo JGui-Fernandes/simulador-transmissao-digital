@@ -176,13 +176,14 @@ class TransmissionTest {
     }
 
     @Test
-    void rajadasReduzemOSigmaDoEstadoBomParaManterOEbN0Medio() {
+    void rajadasUsamOMesmoSigmaNominalDoAwgn() {
         int[] bits = DataGenerator.bitsAleatorios(100, 1L);
         double awgn = Transmission.executar(bits,
                 ConfigTransmission.paraLinha(LineCode.MANCHESTER, false, ChannelType.AWGN, 4.0, 1L)).sigma();
         double rajadas = Transmission.executar(bits,
                 ConfigTransmission.paraLinha(LineCode.MANCHESTER, false, ChannelType.RAJADAS, 4.0, 1L)).sigma();
-        assertTrue(rajadas < awgn, "estado bom das rajadas: " + rajadas + ", AWGN: " + awgn);
+        assertEquals(awgn, rajadas, 1e-12,
+                "o sigma reportado deve ser o nominal, igual ao do AWGN: " + rajadas + " x " + awgn);
     }
 
     @Test
