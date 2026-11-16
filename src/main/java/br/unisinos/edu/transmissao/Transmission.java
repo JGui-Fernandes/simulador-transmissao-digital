@@ -54,7 +54,7 @@ public final class Transmission {
                     ? BurstChannel.bandaBase(config.p(), config.r(), config.fatorDegradacao())
                     : BurstChannel.passaBanda(config.p(), config.r(), config.fatorDegradacao());
             // Mesmo Eb/N0 médio do AWGN: o sigma do estado bom é reduzido
-            sigma = rajadas.sigmaBomParaMesmaPotenciaMedia(sigmaMedio);
+            sigma = sigmaMedio;
             canal = rajadas;
         } else {
             canal = linha ? AwgnChannel.bandaBase() : AwgnChannel.passaBanda();

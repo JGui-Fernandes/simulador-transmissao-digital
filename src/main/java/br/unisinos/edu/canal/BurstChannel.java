@@ -101,18 +101,6 @@ public final class BurstChannel implements Channel {
         return 1.0 / r;
     }
 
-    public double potenciaRuidoRelativa() {
-        double pi = fracaoEsperadaRuim();
-        return (1.0 - pi) + pi * fatorDegradacao * fatorDegradacao;
-    }
-
-    public double sigmaBomParaMesmaPotenciaMedia(double sigmaMedio) {
-        if (!(sigmaMedio >= 0) || !Double.isFinite(sigmaMedio)) {
-            throw new IllegalArgumentException("sigmaMedio inválido: " + sigmaMedio);
-        }
-        return sigmaMedio / Math.sqrt(potenciaRuidoRelativa());
-    }
-
     public double p() {
         return p;
     }
