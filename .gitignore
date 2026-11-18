@@ -1,6 +1,7 @@
 target/
 resultados/teste/
 resultados/piloto/
+resultados/graficos_piloto
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
