@@ -1,203 +1,127 @@
-# Checklist do Projeto: Simulador de Transmissão Digital
+# Simulador de Transmissão Digital
 
-Marque cada item conforme for concluído. Cada etapa só começa quando a anterior estiver com todos os itens marcados.
+Trabalho do Grau B de Redes de Computadores (Unisinos, 2026). Simulador em Java de uma
+cadeia de transmissão digital completa: codificação de canal (Hamming 7,4),
+codificação de linha (AMI e Manchester), modulação digital (BPSK, QPSK e 16-QAM),
+canais AWGN e de rajadas (Gilbert-Elliott) e medição da taxa de erro de bit (BER),
+com validação contra as curvas teóricas.
 
-## Etapa 1: Núcleo (tipos básicos)
-**Objetivo:** criar os tipos que todas as outras etapas usam.
+## Vídeo de execução
 
-- [x] `Complex` (record com `re` e `im`): soma, multiplicação, módulo quadrado e distância
-- [x] `Modulation` (enum BPSK, QPSK, QAM16): `k`, constelação com Gray e eficiência espectral
-- [x] `DataGenerator.textoParaBits(String)` (ASCII, 8 bits por caractere, MSB primeiro)
-- [x] `DataGenerator.bitsParaTexto(int[])`
-- [x] `DataGenerator.bitsAleatorios(n, semente)`
-- [x] Teste: ida e volta do texto (ASCII puro)
-- [x] Teste: mesma semente gera a mesma sequência
-- [x] Teste: energia média da constelação igual a 1 (pode ser adiado para a Etapa 6)
+- Youtube: https://youtu.be/GYBoMDU2e8E
 
-**Pronto quando:** testes de `DataGenerator` e `Complex` passam.
+## Requisitos
 
----
+- Java 23 (testado com Amazon Corretto 23.0.2)
+- Maven 3.9 ou superior
+- Bash para o script de reprodução (no Windows, use o Git Bash)
 
-## Etapa 2: Codificação de linha (banda base)
-**Objetivo:** implementar AMI e Manchester sem canal, com ida e volta exata.
+## Instalação
 
-- [x] `LineCode` (enum AMI, MANCHESTER)
-- [x] `LineEncoder`: AMI (0 vira 0; 1 alterna +1 e −1)
-- [x] `LineEncoder`: Manchester (2 amostras por bit, convenção documentada)
-- [x] `LineDecoder`: AMI por magnitude (|x| > 0,5)
-- [x] `LineDecoder`: Manchester pela diferença entre as metades (r1 − r2)
-- [x] Teste: ida e volta sem ruído para AMI e Manchester
-- [x] Teste: AMI nunca repete polaridade entre pulsos consecutivos
-- [x] Teste: Manchester tem transição no meio de cada bit
+```bash
+git clone https://github.com/JGui-Fernandes/simulador-transmissao-digital.git
+cd simulador-transmissao-digital
+mvn clean package
+```
 
-**Pronto quando:** a mensagem de texto é recuperada exatamente nos dois códigos, sem ruído.
+O `mvn clean package` compila o projeto, roda todos os testes e gera o jar executável
+`target/gb.jar`, com as dependências incluídas.
 
----
+## Execução
 
-## Etapa 3: Canal AWGN, conversão de SNR e BER
-**Objetivo:** adicionar ruído com SNR controlado e medir a BER.
+### Testes
 
-- [x] `Channel` (interface): `Complex[] apply(Complex[] sinal, double sigma, Random rnd)`
-- [x] `AwgnChannel`: ruído gaussiano com variância σ² por componente
-- [x] `SnrConverter`: Eb/N0 → Es/N0 (com k e R)
-- [x] `SnrConverter`: Es/N0 → σ
-- [x] `SnrConverter`: σ para banda base, com amostras por bit (1 para AMI, 2 para Manchester)
-- [x] `Metrics.ber(enviados, recebidos)`: BER e índices dos bits errados
-- [x] Teste: variância medida do ruído próxima da teórica
-- [x] Teste: `SnrConverter` nos dois sentidos (0 dB, k = 2, R = 1 → 3,01 dB)
-- [x] Teste: BER de AMI e Manchester sem ruído é zero
-- [x] Teste contra a teoria: NRZ polar, 10⁶ bits, 4 dB → BER ≈ 1,25·10⁻²
+```bash
+mvn test
+```
 
-**Pronto quando:** o teste contra a teoria do NRZ polar passa.
+### Uma transmissão pela linha de comando
 
----
+```bash
+java -jar target/gb.jar --mensagem "Redes" --modo MODULADO --modulacao QAM16 --ebn0 10 --canal AWGN --semente 42
+```
 
-## Etapa 4: Codificação de canal (Hamming 7,4)
-**Objetivo:** implementar a correção de erros.
+A saída mostra o texto recebido, a BER, o número de bits errados e as posições dos
+bits errados. Use `java -jar target/gb.jar --help` para ver todas as opções
+(modo, código de linha, modulação, Hamming, canal, Eb/N0, semente e parâmetros
+das rajadas).
 
-- [x] `ChannelEncoder` (interface) e `ChannelDecoder` (interface)
-- [x] `Hamming74`: codificação de blocos de 4 bits em 7, com padding registrado
-- [x] `Hamming74`: decodificação por síndrome (corrige 1 erro por bloco)
-- [x] Teste: os 16 blocos de dados são recuperados sem ruído
-- [x] Teste: todo erro simples (7 posições) é corrigido
-- [x] Teste: erro duplo no mesmo bloco não é corrigido (documentando o limite)
-- [x] Teste: taxa R = 4/7 usada corretamente no `SnrConverter`
+### Reproduzir todos os resultados com um único comando
 
-**Pronto quando:** pipeline banda base com Hamming passa sem ruído e, em Eb/N0 alto, a BER fica abaixo da BER sem código.
+```bash
+bash scripts/executar_tudo.sh
+```
 
----
+O script, a partir de uma cópia limpa do repositório:
 
-## Etapa 5: Canal de rajadas (Gilbert-Elliott)
-**Objetivo:** implementar o segundo cenário de canal, com erros agrupados.
+1. compila o projeto (`mvn clean package`);
+2. roda o experimento completo (800 execuções) com `config/experimento_base.properties`;
+3. confere o CSV e grava `resultados/brutos/experimento_base.csv`;
+4. gera as figuras em `docs/figuras/`;
+5. gera a tabela de compromisso em `docs/tabela_compromisso.md`.
 
-- [x] `BurstChannel` (implementa `Channel`): cadeia de Markov com dois estados
-- [x] Estado bom (σ normal) e estado ruim (σ × fator de degradação)
-- [x] Parâmetros p (entrar no ruim) e r (sair do ruim) configuráveis
-- [x] Estado mantido entre chamadas, dependente só do `Random` recebido
-- [x] Teste: fração de amostras no estado ruim perto de p / (p + r)
-- [x] Teste: mesma semente gera a mesma sequência de estados
-- [x] Teste: erros agrupados (dois erros consecutivos mais prováveis que em canal independente)
-- [x] Calibração com cenário piloto (p, r e fator escolhidos e documentados)
+O log de cada execução fica em `resultados/logs/`. O experimento completo leva cerca
+de 4 minutos. Como todas as execuções usam sementes fixas, rodar de novo produz
+exatamente o mesmo CSV.
 
-**Pronto quando:** o cenário piloto mostra BER maior que o AWGN no mesmo Eb/N0 médio e erros agrupados.
+Se o `mvn` não estiver no PATH, gere o jar pelo painel Maven do IntelliJ
+(Lifecycle → package) e rode `PULAR_BUILD=1 bash scripts/executar_tudo.sh`.
 
----
+Para um teste rápido (32 execuções, menos de 1 segundo), sem sobrescrever os
+resultados oficiais:
 
-## Etapa 6: Modulação e demodulação
-**Objetivo:** implementar BPSK, QPSK e 16-QAM com Gray.
+```bash
+ESPERADO=33 CONFIG=config/experimento_teste.properties SAIDA=resultados/teste/teste.csv bash scripts/executar_tudo.sh
+```
 
-- [x] `Modulator`: converte bits em `Complex[]`, agrupando k bits por símbolo
-- [x] `Demodulator`: decisão por distância mínima e devolve bits
-- [x] Padding documentado para bits que não completam um símbolo
-- [x] Teste: energia média de símbolo igual a 1 para cada modulação
-- [x] Teste: vizinhos mais próximos diferem em 1 bit (Gray)
-- [x] Teste: ida e volta sem ruído para todos os tamanhos de bloco
+## Parâmetros
 
-**Pronto quando:** todos os testes de constelação e ida e volta passam para as três modulações.
+| Parâmetro | Valor |
+|---|---|
+| Eb/N0 | −2 a 12 dB, passo de 2 dB (8 valores) |
+| Bits por execução | 1.000.000 |
+| Sementes | 1, 2, 3, 4 e 5 (IC 95% pela distribuição t) |
+| Esquemas | BPSK, QPSK, 16-QAM, AMI, Manchester |
+| Canais | AWGN e rajadas (p = 0,01; r = 0,1; fator = 2) |
+| Código de canal | nenhum e Hamming(7,4) |
 
----
+Convenções, justificativas e escolha do fator das rajadas em
+[docs/parametros.md](docs/parametros.md). Plano e execução do experimento em
+[docs/experimento_final.md](docs/experimento_final.md).
 
-## Etapa 7: Validação teórica das modulações
-**Objetivo:** provar que a simulação está correta antes de confiar nos resultados.
+## Arquitetura
 
-- [x] `TheoreticalCurves`: função Q (via `erfc`)
-- [x] `TheoreticalCurves`: BPSK/QPSK, Q(√(2·Eb/N0))
-- [x] `TheoreticalCurves`: 16-QAM com Gray, ≈ 0,75 · Q(√(0,8·Eb/N0))
-- [x] Teste: BPSK em 0 dB e 4 dB dentro de ±15% da teoria
-- [x] Teste: BPSK em 8 dB com tolerância maior ou mais bits
-- [x] Teste: QPSK com a mesma curva do BPSK por bit
+Cadeia de transmissão, fluxo dos experimentos, pacotes e decisões de projeto em
+[docs/arquitetura.md](docs/arquitetura.md).
 
-**Pronto quando:** BPSK e QPSK batem com a teoria dentro da tolerância. Se não baterem, não avance.
+## Resultados
 
----
+| | |
+|---|---|
+| ![Modulações em AWGN](docs/figuras/fig1_modulacoes_awgn.png) | ![AWGN x rajadas](docs/figuras/fig2_awgn_vs_rajadas.png) |
+| ![Hamming nas modulações](docs/figuras/fig3_hamming_modulacoes.png) | ![Hamming nos códigos de linha](docs/figuras/fig4_hamming_linhas.png) |
 
-## Etapa 8: Pipeline completo e CLI
-**Objetivo:** juntar tudo em uma cadeia de transmissão e expor pela linha de comando.
+Principais conclusões:
 
-- [x] `Transmission`: encadeia todas as etapas, escolhendo linha ou modulado por parâmetro
-- [x] `Main` (CLI sem biblioteca extra): `--mensagem`, `--modo`, `--modulacao`, `--ebn0`, `--canal`, `--semente`
-- [x] Saída: texto recebido, BER, número de bits errados e posições
-- [x] Teste: consistência com Eb/N0 de 30 dB, para todas as combinações
-- [x] Teste: com ruído moderado, as posições informadas coincidem com as diferenças entre os bits
+- Em AWGN sem código, a simulação ficou a no máximo 0,1 dB da teoria em todos os esquemas.
+- O QPSK tem a mesma BER por bit do BPSK com o dobro da eficiência; o 16-QAM exige 3,7 dB a mais para BER 10⁻³.
+- O AMI ocupa metade da banda do Manchester, mas precisa de 3,4 dB a mais.
+- O canal de rajadas custa ≈ 3,5 dB em BER 10⁻³ e anula o ganho do Hamming(7,4).
 
-**Pronto quando:** a CLI executa o fluxo completo com qualquer combinação e o teste de consistência passa.
+Documentos:
 
----
+- Tabela de compromisso: [docs/tabela_compromisso.md](docs/tabela_compromisso.md)
+- Análise e discussão: [docs/discussão.md](docs/discuss%C3%A3o.md)
+- Checklist das etapas: [docs/checklist.md](docs/checklist.md)
 
-## Etapa 9: Configuração, estatística e execução de experimentos
-**Objetivo:** tornar os experimentos reproduzíveis e automatizados.
+## Estrutura do repositório
 
-- [x] `ConfigLoader`: lê `config/experimento_base.properties`
-- [x] `Statistics`: média, desvio padrão e IC 95% (t = 2,776 para 5 repetições)
-- [x] `ExperimentRunner`: executa cenário × modulação × Eb/N0 × semente
-- [x] `ResultWriter`: grava uma linha por execução no CSV bruto
-- [x] Teste: mesmas sementes geram CSVs idênticos
-- [x] Teste: estatísticas calculadas à mão batem com o resultado
-- [x] Teste: experimento reduzido gera o número esperado de linhas
-
-**Pronto quando:** um experimento reduzido gera CSV correto e determinístico.
-
----
-
-## Etapa 10: Experimentos completos
-**Objetivo:** executar o plano experimental do trabalho.
-
-- [x] 8 valores de Eb/N0 (−2 a 12 dB, passo 2 dB)
-- [x] 1.000.000 de bits por execução (justificativa escrita)
-- [x] 5 sementes
-- [x] Todas as modulações, linhas, canais e códigos de canal
-- [x] `scripts/executar_tudo.sh` chamando `java -jar`, com logs salvos
-
-**Pronto quando:** os CSVs completos estão em `resultados/brutos/` e o script roda do zero em uma máquina limpa.
-
----
-
-## Etapa 11: Gráficos com XChart
-**Objetivo:** gerar as curvas BER × SNR a partir dos CSVs.
-
-- [ ] `PlotGenerator` lê os CSVs e calcula média e IC 95% por ponto
-- [ ] Curvas BER × Eb/N0 por modulação, com barras de erro e escala log
-- [ ] Comparação AWGN × rajadas
-- [ ] Curva teórica sobreposta (tracejada)
-- [ ] Piso para BER zero, informado na legenda
-- [ ] Limite inferior das barras de erro positivo
-- [ ] PNG salvo em `resultados/graficos/`
-
-**Pronto quando:** os gráficos são gerados com um único comando e revisados visualmente.
-
----
-
-## Etapa 12: Análise e discussão
-**Objetivo:** transformar os números em interpretação.
-
-- [x] `docs/tabela_compromisso.md` com eficiência nominal e Eb/N0 para BER-alvo
-- [x] Discussão: quando cada modulação é mais adequada
-- [x] Discussão: impacto do Hamming, do AMI e das rajadas
-- [x] Explicação de divergências entre simulação e teoria (se houver)
-- [ ] Opcional: constelações antes e depois do canal (XYChart)
-
-**Pronto quando:** cada gráfico tem uma frase de interpretação e a tabela está preenchida.
-
----
-
-## Etapa 13: Documentação, reprodutibilidade e vídeo
-**Objetivo:** atender aos critérios de repositório e entrega.
-
-- [ ] README completo: arquitetura, parâmetros, instalação, execução, divisão de tarefas, links
-- [ ] `docs/arquitetura.md`
-- [ ] `docs/parametros.md`
-- [ ] `docs/tabela_compromisso.md` (já criado na Etapa 12)
-- [ ] Um único comando reproduz CSVs e gráficos
-- [ ] Vídeo de até 5 minutos enviado ao GitHub (ou link no README)
-
-**Pronto quando:** outra pessoa clona o repositório, segue o README e reproduz os resultados.
-
----
-
-## Etapa 14: Apresentação e release
-
-- [ ] Slides de 10 minutos, com divisão de fala entre os dois integrantes
-- [ ] Ensaio cronometrado
-- [ ] Todos sabem explicar cada classe do projeto
-- [ ] Tag `v1.0-final` no GitHub
-- [ ] Link no Moodle **antes das 19h de 19/11/2026**
+```
+config/               configurações dos experimentos (.properties)
+docs/                 arquitetura, parâmetros, discussão, tabela, checklist e figuras
+resultados/brutos/    CSV do experimento final e cópia da configuração usada
+resultados/logs/      logs das execuções do script
+scripts/              executar_tudo.sh, gerar_graficos.sh e verificar_piloto.sh
+src/main/java/        código-fonte (pacote br.unisinos.edu)
+src/test/java/        testes (JUnit 5)
+```
