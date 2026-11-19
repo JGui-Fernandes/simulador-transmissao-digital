@@ -170,10 +170,10 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 12: Análise e discussão
 **Objetivo:** transformar os números em interpretação.
 
-- [ ] `docs/tabela_compromisso.md` com eficiência nominal e Eb/N0 para BER-alvo
-- [ ] Discussão: quando cada modulação é mais adequada
-- [ ] Discussão: impacto do Hamming, do AMI e das rajadas
-- [ ] Explicação de divergências entre simulação e teoria (se houver)
+- [x] `docs/tabela_compromisso.md` com eficiência nominal e Eb/N0 para BER-alvo
+- [x] Discussão: quando cada modulação é mais adequada
+- [x] Discussão: impacto do Hamming, do AMI e das rajadas
+- [x] Explicação de divergências entre simulação e teoria (se houver)
 - [ ] Opcional: constelações antes e depois do canal (XYChart)
 
 **Pronto quando:** cada gráfico tem uma frase de interpretação e a tabela está preenchida.
