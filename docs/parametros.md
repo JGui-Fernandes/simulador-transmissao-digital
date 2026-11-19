@@ -13,8 +13,8 @@
 - Fração esperada no estado ruim em regime: π = p / (p + r). Com p = 0,01 e r = 0,1, π ≈ 0,091.
 - Duração média de uma rajada: 1/r amostras.
 - Potência média do ruído em relação ao AWGN: (1 − π) + π·fator².
-    - Fator 2: 0,909 + 0,091·4 ≈ 1,27 (≈ +1,0 dB). Padrão do simulador.
-    - Fator 5: 0,909 + 0,091·25 ≈ 3,18 (≈ +5,0 dB). Descartado pelo piloto.
+  - Fator 2: 0,909 + 0,091·4 ≈ 1,27 (≈ +1,0 dB). Padrão do simulador.
+  - Fator 5: 0,909 + 0,091·25 ≈ 3,18 (≈ +5,0 dB). Descartado pelo piloto.
 - Consequência: o Eb/N0 nominal de rajadas não corresponde ao Eb/N0 efetivo. A comparação com o AWGN é feita no mesmo Eb/N0 nominal, e a diferença entre as curvas é a degradação causada pelas rajadas.
 - A contagem é **por amostra do canal**, não por bit. Amostras por bit ou símbolo:
 
@@ -66,11 +66,11 @@ Com fator 2, a degradação é visível de 4 a 10 dB sem saturar. Os resultados 
 - Hamming(7,4): corrige 1 erro por bloco de 7 bits. Decisão abrupta (hard decision).
 - Padding: zeros acrescentados ao último bloco de 4 bits de informação. Os zeros são descartados na decodificação.
 - **Cruzamento com o caso sem código** (piloto, fator 2, AWGN, contagem de erros):
-    - BPSK e QPSK: o código passa a ser melhor entre 6 e 8 dB. Em 6 dB, BPSK tem 483 erros sem código e 500 com código. Em 8 dB, tem 44 e 23.
-    - Manchester: o código passa a ser melhor entre 4 e 6 dB (2439 contra 3099 em 4 dB; 465 contra 451 em 6 dB).
-    - 16-QAM: o cruzamento fica entre 6 e 8 dB (5510 contra 5767 em 6 dB; 1822 contra 1546 em 8 dB).
-    - AMI: o código é pior até 10 dB (251 contra 286 erros). Em 12 dB, passa a ser melhor (16 contra 2). O cruzamento fica entre 10 e 12 dB.
-    - A piora de AMI com decisão abrupta é esperada. A aproximação de Hamming (≈ 9·p² para o erro de bloco, com p a probabilidade de erro no canal) dá cruzamento perto de 11 dB para AMI. Isso entra na análise como discussão, não como defeito.
+  - BPSK e QPSK: o código passa a ser melhor entre 6 e 8 dB. Em 6 dB, BPSK tem 483 erros sem código e 500 com código. Em 8 dB, tem 44 e 23.
+  - Manchester: o código passa a ser melhor entre 4 e 6 dB (2439 contra 3099 em 4 dB; 465 contra 451 em 6 dB).
+  - 16-QAM: o cruzamento fica entre 6 e 8 dB (5510 contra 5767 em 6 dB; 1822 contra 1546 em 8 dB).
+  - AMI: o código é pior até 10 dB (251 contra 286 erros). Em 12 dB, passa a ser melhor (16 contra 2). O cruzamento fica entre 10 e 12 dB.
+  - A piora de AMI com decisão abrupta é esperada. A aproximação de Hamming (≈ 9·p² para o erro de bloco, com p a probabilidade de erro no canal) dá cruzamento perto de 11 dB para AMI. Isso entra na análise como discussão, não como defeito.
 - Em 10 e 12 dB, com 10⁵ bits, as contagens são muito baixas (0 a 3 erros em vários casos). Por isso a comparação de Hamming usa contagens e margem de 3 desvios de Poisson, não médias de BER.
 
 ## Posições dos bits errados
@@ -95,7 +95,7 @@ Com fator 2, a degradação é visível de 4 a 10 dB sem saturar. Os resultados 
 
 ## Verificação dos resultados
 
-O script `scripts/verificar_piloto.ps1` confere, para cada CSV:
+O script `scripts/verificar_piloto.sh` (originalmente `verificar_piloto.ps1`) confere, para cada CSV:
 
 - formato, contagem de linhas e ausência de combinações repetidas;
 - consistência de BER e de `bits_mensagem`;
@@ -120,8 +120,7 @@ Grade de Eb/N0 do experimento final: −2 a 12 dB, passo 2 dB (8 valores).
 
 Com duas sementes, o IC 95% do piloto é muito largo (t = 12,706). Ele serve para escolher o fator, não para os resultados finais.
 
-## Estimativa de tempo da Etapa 10
+## Tempo de execução
 
-- Tempo do piloto (fator 2, 320 execuções, 10⁵ bits): [preencher com o valor de `Concluído: ... s`].
-- Estimativa para o experimento final: tempo do piloto × (800/320) × 10 ≈ 25 × tempo do piloto.
-- Valor estimado: [preencher]. Decide se o experimento roda em uma sessão ou em lotes.
+- O tempo do piloto não foi registrado no log.
+- Experimento final (800 execuções, 10⁶ bits): ≈ 4 minutos (229 s no log `resultados/logs/experimento_base_20261118_193739.log`). Roda em uma única sessão.

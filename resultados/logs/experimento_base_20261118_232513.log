@@ -1,0 +1,58 @@
+=== Reprodução completa: experimento, figuras e tabela ===
+Início:   2026-11-18 23:25:14
+Config:   config/experimento_teste.properties
+Saída:    resultados/teste/teste.csv
+Figuras:  resultados/teste/figuras
+Tabela:   resultados/teste/tabela_compromisso.md
+Log:      resultados/logs/experimento_base_20261118_232513.log
+Commit:   79c9a7d
+Java:     java version "25" 2025-09-16 LTS
+Java:     Java(TM) SE Runtime Environment (build 25+37-LTS-3491)
+Java:     Java HotSpot(TM) 64-Bit Server VM (build 25+37-LTS-3491, mixed mode, sharing)
+--- Compilando ---
+Jar:      target/gb.jar
+--- Executando (800 execuções esperadas) ---
+[1/32] BPSK AWGN NENHUM Eb/N0=0.0 dB semente=1 BER=7.590e-02
+[2/32] BPSK AWGN NENHUM Eb/N0=0.0 dB semente=2 BER=7.950e-02
+[3/32] BPSK AWGN NENHUM Eb/N0=6.0 dB semente=1 BER=2.400e-03
+[4/32] BPSK AWGN NENHUM Eb/N0=6.0 dB semente=2 BER=2.300e-03
+[5/32] BPSK AWGN HAMMING74 Eb/N0=0.0 dB semente=1 BER=1.206e-01
+[6/32] BPSK AWGN HAMMING74 Eb/N0=0.0 dB semente=2 BER=1.302e-01
+[7/32] BPSK AWGN HAMMING74 Eb/N0=6.0 dB semente=1 BER=3.300e-03
+[8/32] BPSK AWGN HAMMING74 Eb/N0=6.0 dB semente=2 BER=2.800e-03
+[9/32] BPSK RAJADAS NENHUM Eb/N0=0.0 dB semente=1 BER=9.550e-02
+[10/32] BPSK RAJADAS NENHUM Eb/N0=0.0 dB semente=2 BER=9.700e-02
+[11/32] BPSK RAJADAS NENHUM Eb/N0=6.0 dB semente=1 BER=7.900e-03
+[12/32] BPSK RAJADAS NENHUM Eb/N0=6.0 dB semente=2 BER=9.100e-03
+[13/32] BPSK RAJADAS HAMMING74 Eb/N0=0.0 dB semente=1 BER=1.359e-01
+[14/32] BPSK RAJADAS HAMMING74 Eb/N0=0.0 dB semente=2 BER=1.405e-01
+[15/32] BPSK RAJADAS HAMMING74 Eb/N0=6.0 dB semente=1 BER=1.080e-02
+[16/32] BPSK RAJADAS HAMMING74 Eb/N0=6.0 dB semente=2 BER=1.210e-02
+[17/32] AMI AWGN NENHUM Eb/N0=0.0 dB semente=1 BER=2.411e-01
+[18/32] AMI AWGN NENHUM Eb/N0=0.0 dB semente=2 BER=2.384e-01
+[19/32] AMI AWGN NENHUM Eb/N0=6.0 dB semente=1 BER=3.340e-02
+[20/32] AMI AWGN NENHUM Eb/N0=6.0 dB semente=2 BER=3.340e-02
+[21/32] AMI AWGN HAMMING74 Eb/N0=0.0 dB semente=1 BER=3.475e-01
+[22/32] AMI AWGN HAMMING74 Eb/N0=0.0 dB semente=2 BER=3.581e-01
+[23/32] AMI AWGN HAMMING74 Eb/N0=6.0 dB semente=1 BER=6.010e-02
+[24/32] AMI AWGN HAMMING74 Eb/N0=6.0 dB semente=2 BER=6.170e-02
+[25/32] AMI RAJADAS NENHUM Eb/N0=0.0 dB semente=1 BER=2.564e-01
+[26/32] AMI RAJADAS NENHUM Eb/N0=0.0 dB semente=2 BER=2.511e-01
+[27/32] AMI RAJADAS NENHUM Eb/N0=6.0 dB semente=1 BER=5.530e-02
+[28/32] AMI RAJADAS NENHUM Eb/N0=6.0 dB semente=2 BER=5.280e-02
+[29/32] AMI RAJADAS HAMMING74 Eb/N0=0.0 dB semente=1 BER=3.642e-01
+[30/32] AMI RAJADAS HAMMING74 Eb/N0=0.0 dB semente=2 BER=3.703e-01
+[31/32] AMI RAJADAS HAMMING74 Eb/N0=6.0 dB semente=1 BER=8.970e-02
+[32/32] AMI RAJADAS HAMMING74 Eb/N0=6.0 dB semente=2 BER=9.140e-02
+Conclu�do: 32 execu��es em 0.3 s -> resultados/teste/teste.csv
+Tempo total: 0 s
+OK: resultados/teste/teste.csv com 32 execuções.
+--- Gerando figuras ---
+Gerado: resultados\teste\figuras\fig1_modulacoes_awgn.png
+Gerado: resultados\teste\figuras\fig2_awgn_vs_rajadas.png
+Gerado: resultados\teste\figuras\fig3_hamming_modulacoes.png
+Gerado: resultados\teste\figuras\fig4_hamming_linhas.png
+--- Gerando tabela de compromisso ---
+Lendo: C:\Users\Usuario\IdeaProjects\simulador-transmissao-digital\resultados\teste\teste.csv
+Gerado: C:\Users\Usuario\IdeaProjects\simulador-transmissao-digital\resultados\teste\tabela_compromisso.md
+Fim:      2026-11-18 23:25:36

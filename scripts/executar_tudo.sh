@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # scripts/executar_tudo.sh
-# Executa o experimento final (Etapa 10) do zero: compila, roda e confere o CSV.
+# Reproduz todos os resultados do zero: compila, roda o experimento, confere o CSV,
+# gera as figuras e a tabela de compromisso.
 # Uso (a partir de qualquer pasta):  bash scripts/executar_tudo.sh
 # Variáveis opcionais:
 #   CONFIG=config/experimento_base.properties   configuração a executar
@@ -8,6 +9,10 @@
 #   JAR=caminho/do/gb.jar                        pula a detecção do jar
 #   JAVA_OPTS="-Xmx2g"                           opções da JVM
 #   PULAR_BUILD=1                                usa o jar já existente
+#   FIGURAS=docs/figuras                         pasta das figuras
+#   TABELA=docs/tabela_compromisso.md            arquivo da tabela de compromisso
+# Com uma SAIDA diferente da padrão (ex.: teste), figuras e tabela vão para a pasta
+# do CSV, para não sobrescrever os resultados oficiais em docs/.
 
 set -euo pipefail
 
@@ -18,6 +23,14 @@ cd "$RAIZ"
 CONFIG="${CONFIG:-config/experimento_base.properties}"
 SAIDA="${SAIDA:-resultados/brutos/experimento_base.csv}"
 JAVA_OPTS="${JAVA_OPTS:--Xmx2g}"
+SAIDA_PADRAO="resultados/brutos/experimento_base.csv"
+if [ "$SAIDA" = "$SAIDA_PADRAO" ]; then
+    FIGURAS="${FIGURAS:-docs/figuras}"
+    TABELA="${TABELA:-docs/tabela_compromisso.md}"
+else
+    FIGURAS="${FIGURAS:-$(dirname "$SAIDA")/figuras}"
+    TABELA="${TABELA:-$(dirname "$SAIDA")/tabela_compromisso.md}"
+fi
 LOGS="resultados/logs"
 CARIMBO="$(date +%Y%m%d_%H%M%S)"
 LOG="$LOGS/experimento_base_$CARIMBO.log"
@@ -27,10 +40,12 @@ mkdir -p "$(dirname "$SAIDA")" "$LOGS"
 # Tudo o que o script imprime também vai para o log
 exec > >(tee -a "$LOG") 2>&1
 
-echo "=== Etapa 10: experimento final ==="
+echo "=== Reprodução completa: experimento, figuras e tabela ==="
 echo "Início:   $(date '+%Y-%m-%d %H:%M:%S')"
 echo "Config:   $CONFIG"
 echo "Saída:    $SAIDA"
+echo "Figuras:  $FIGURAS"
+echo "Tabela:   $TABELA"
 echo "Log:      $LOG"
 command -v git >/dev/null 2>&1 && git rev-parse --short HEAD 2>/dev/null | sed 's/^/Commit:   /' || true
 java -version 2>&1 | sed 's/^/Java:     /'
@@ -83,4 +98,14 @@ if [ -e "$SAIDA.parcial" ]; then
     echo "FALHOU: sobrou $SAIDA.parcial"; exit 1
 fi
 echo "OK: $SAIDA com $((OBTIDO - 1)) execuções."
+
+# 8. Figuras (Etapa 11): lê o CSV e grava os PNGs
+echo "--- Gerando figuras ---"
+mkdir -p "$FIGURAS"
+java $JAVA_OPTS -cp "$JAR" br.unisinos.edu.graficos.PlotGenerator "$SAIDA" "$FIGURAS"
+
+# 9. Tabela de compromisso (Etapa 12): lê o mesmo CSV
+echo "--- Gerando tabela de compromisso ---"
+java $JAVA_OPTS -cp "$JAR" br.unisinos.edu.graficos.TradeoffTable "$SAIDA" "$TABELA"
+
 echo "Fim:      $(date '+%Y-%m-%d %H:%M:%S')"
