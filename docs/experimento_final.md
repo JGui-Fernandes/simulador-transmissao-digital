@@ -33,7 +33,7 @@ Uma BER estimada por contagem de erros só é confiável quando há erros sufici
 
 ## Tempo de execução
 
-- Piloto (320 execuções, 10⁵ bits): [preencher com o tempo registrado no log].
+- Piloto (320 execuções, 10⁵ bits): não registrado no log.
 - Estimativa do final: 25 × tempo do piloto.
 - Tempo real do experimento final: **242,8 segundos (aproximadamente 4 minutos e 3 segundos)**.
 
