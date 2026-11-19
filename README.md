@@ -127,13 +127,13 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 9: Configuração, estatística e execução de experimentos
 **Objetivo:** tornar os experimentos reproduzíveis e automatizados.
 
-- [ ] `ConfigLoader`: lê `config/experimento_base.properties`
-- [ ] `Statistics`: média, desvio padrão e IC 95% (t = 2,776 para 5 repetições)
-- [ ] `ExperimentRunner`: executa cenário × modulação × Eb/N0 × semente
-- [ ] `ResultWriter`: grava uma linha por execução no CSV bruto
-- [ ] Teste: mesmas sementes geram CSVs idênticos
-- [ ] Teste: estatísticas calculadas à mão batem com o resultado
-- [ ] Teste: experimento reduzido gera o número esperado de linhas
+- [x] `ConfigLoader`: lê `config/experimento_base.properties`
+- [x] `Statistics`: média, desvio padrão e IC 95% (t = 2,776 para 5 repetições)
+- [x] `ExperimentRunner`: executa cenário × modulação × Eb/N0 × semente
+- [x] `ResultWriter`: grava uma linha por execução no CSV bruto
+- [x] Teste: mesmas sementes geram CSVs idênticos
+- [x] Teste: estatísticas calculadas à mão batem com o resultado
+- [x] Teste: experimento reduzido gera o número esperado de linhas
 
 **Pronto quando:** um experimento reduzido gera CSV correto e determinístico.
 
@@ -142,11 +142,11 @@ Marque cada item conforme for concluído. Cada etapa só começa quando a anteri
 ## Etapa 10: Experimentos completos
 **Objetivo:** executar o plano experimental do trabalho.
 
-- [ ] 8 valores de Eb/N0 (−2 a 12 dB, passo 2 dB)
-- [ ] 1.000.000 de bits por execução (justificativa escrita)
-- [ ] 5 sementes
-- [ ] Todas as modulações, linhas, canais e códigos de canal
-- [ ] `scripts/executar_tudo.sh` chamando `java -jar`, com logs salvos
+- [x] 8 valores de Eb/N0 (−2 a 12 dB, passo 2 dB)
+- [x] 1.000.000 de bits por execução (justificativa escrita)
+- [x] 5 sementes
+- [x] Todas as modulações, linhas, canais e códigos de canal
+- [x] `scripts/executar_tudo.sh` chamando `java -jar`, com logs salvos
 
 **Pronto quando:** os CSVs completos estão em `resultados/brutos/` e o script roda do zero em uma máquina limpa.
 
