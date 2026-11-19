@@ -112,7 +112,6 @@ Documentos:
 
 - Tabela de compromisso: [docs/tabela_compromisso.md](docs/tabela_compromisso.md)
 - Análise e discussão: [docs/discussão.md](docs/discuss%C3%A3o.md)
-- Checklist das etapas: [docs/checklist.md](docs/checklist.md)
 
 ## Estrutura do repositório
 
